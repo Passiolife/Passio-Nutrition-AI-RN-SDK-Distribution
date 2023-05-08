@@ -1,0 +1,14 @@
+*.pbxproj -text
+# specific for windows script files
+*.bat text eol=crlf
+*.passiosecure filter=lfs diff=lfs merge=lfs -text
+*.aar filter=lfs diff=lfs merge=lfs -text
+*.car filter=lfs diff=lfs merge=lfs -text
+PassioSDK filter=lfs diff=lfs merge=lfs -text
+PassioSDKiOS filter=lfs diff=lfs merge=lfs -text
+ios/Frameworks/PassioSDKiOS.xcframework/ios-arm64/PassioSDKiOS.framework/PassioSDKiOS filter=lfs diff=lfs merge=lfs -text
+ios/Frameworks/PassioSDKiOS.xcframework/ios-arm64_x86_64-simulator/PassioSDKiOS.framework/PassioSDKiOS filter=lfs diff=lfs merge=lfs -text
+android/passioicons-release/passioicons-release.aar filter=lfs diff=lfs merge=lfs -text
+android/passiolib-release/passiolib-release.aar filter=lfs diff=lfs merge=lfs -text
+ios/Frameworks/PassioSDKiOS.xcframework/ios-arm64/PassioSDKiOS.framework/Assets.car filter=lfs diff=lfs merge=lfs -text
+ios/Frameworks/PassioSDKiOS.xcframework/ios-arm64_x86_64-simulator/PassioSDKiOS.framework/Assets.car filter=lfs diff=lfs merge=lfs -text

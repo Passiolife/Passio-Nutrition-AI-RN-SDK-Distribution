@@ -1,0 +1,263 @@
+{
+  "project_info": {
+    "project_number": "344771555334",
+    "firebase_url": "https://passio-nutrition-develop-bcb6.firebaseio.com",
+    "project_id": "passio-nutrition-develop-bcb6",
+    "storage_bucket": "passio-nutrition-develop-bcb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:aba6bb91fbe3fad1ff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.androidpassiodemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:cc48c6ec9514048dff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.passiosdk.paints"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:0d323fec99cc0b35ff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.passiosdk.passiodatacollection"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:fd451c9bc3c228bdff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.passiosdk.passiodatacollection.internal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:215fcc64b2289ac9ff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.passiosdk.passiodatacollection.paints"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:a895e63e9af65b00ff1387",
+        "android_client_info": {
+          "package_name": "ai.passio.passiosdk.passiodatacollection.paints.internal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344771555334:android:14fd24c8f20454d0ff1387",
+        "android_client_info": {
+          "package_name": "com.passiolife.reactnativequickstart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344771555334-rt8be80q3nmmuo0c9cui6uhi8fqbjupd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjktfOhPKKbJN1ySBABlSb0QZ63FP182s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344771555334-ku86hf8gj2bqmmo4adirraj5enmof2mp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "344771555334-08gclsmbooph0kco84vh015lk4kuespl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "zai.passio.passport.beta"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

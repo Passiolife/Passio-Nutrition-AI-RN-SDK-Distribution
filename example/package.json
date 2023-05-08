@@ -1,0 +1,28 @@
+{
+  "name": "nutritionai-react-native-sdk-v2-example",
+  "description": "Example app for nutritionai-react-native-sdk-v2",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "adb reverse tcp:8081 tcp:8081 && react-native start",
+    "ios": "react-native run-ios",
+    "bundle-ios": "react-native bundle --dev false --entry-file index.js --bundle-output ios/main.jsbundle --platform ios",
+    "start": "react-native start",
+    "adb-tcp": "adb reverse tcp:8081 tcp:8081",
+    "bundle-android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/",
+    "release-apk": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/build/intermediates/res/merged/release/ && rm -rf android/app/src/main/res/drawable-* && rm -rf android/app/src/main/res/raw/*",
+    "reinstall": "cd ..; yarn prepare && cd example; rm -rf node_modules/ && rm -rf yarn.lock && yarn && cd ios; pod install; cd .."
+  },
+  "dependencies": {
+    "@passiolife/nutritionai-react-native-sdk-v2": "link:../",
+    "react": "17.0.2  ",
+    "react-native": "0.68.5",
+    "rn-fetch-blob": "^0.12.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/runtime": "^7.12.5",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "metro-react-native-babel-preset": "^0.67.0"
+  }
+}
