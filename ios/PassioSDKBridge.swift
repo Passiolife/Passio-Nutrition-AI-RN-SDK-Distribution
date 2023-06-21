@@ -27,6 +27,7 @@ class PassioSDKBridge: RCTEventEmitter {
         config.debugMode = debugMode
         config.sdkDownloadsModels = autoUpdate
         config.filesLocalURLs = localFiles
+        config.reactNativeBridged = true
         self.debugMode = debugMode == 0 ? false : true
         
         sdk.statusDelegate = self

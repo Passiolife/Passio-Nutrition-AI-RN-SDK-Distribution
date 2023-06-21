@@ -283,9 +283,7 @@ PODS:
     - React-jsi (= 0.68.5)
     - React-logger (= 0.68.5)
     - React-perflogger (= 0.68.5)
-  - ReactNativePassioSDK (2.2.11):
-    - React-Core
-  - rn-fetch-blob (0.12.0):
+  - ReactNativePassioSDK (2.3.3):
     - React-Core
   - Yoga (1.14.0)
 
@@ -323,7 +321,6 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativePassioSDK (from `../..`)
-  - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -393,8 +390,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePassioSDK:
     :path: "../.."
-  rn-fetch-blob:
-    :path: "../node_modules/rn-fetch-blob"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -430,8 +425,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: 9819a3bf6230e4b2a99877c21268b0b2416157a1
   React-runtimeexecutor: b1f1995089b90696dbc2a7ffe0059a80db5c8eb1
   ReactCommon: 149e2c0acab9bac61378da0db5b2880a1b5ff59b
-  ReactNativePassioSDK: 2061fd1459e5d0fc5d7dd3e7168071d6a879983c
-  rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
+  ReactNativePassioSDK: 13fca417265e2b38fc3d31579ccb0b2d47f5a250
   Yoga: c4d61225a466f250c35c1ee78d2d0b3d41fe661c
 
 PODFILE CHECKSUM: e880cd459938e144ef5c7f2c338f66f04744907c

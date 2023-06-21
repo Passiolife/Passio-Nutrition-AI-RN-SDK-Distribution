@@ -4,10 +4,7 @@ import ai.passio.passiosdk.core.config.PassioConfiguration
 import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
 import ai.passio.passiosdk.passiofood.*
-import ai.passio.passiosdk.passiofood.data.model.PassioIDAttributes
-import ai.passio.passiosdk.passiofood.data.model.PassioIDEntityType
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
-import ai.passio.passiosdk.passiofood.upc.UPCProduct
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Handler
@@ -160,15 +157,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun convertUPCProductToAttributes(productJSON: String, type: String, promise: Promise) {
-    try {
-      val product = UPCProduct(productJSON)
-      val entityType = PassioIDEntityType.fromString(type)
-      val attributes = PassioIDAttributes(product, entityType)
-      val bridged = bridgePassioAttributes(attributes)
-      promise.resolve(bridged)
-    } catch (err: Throwable) {
-      promise.reject(err)
-    }
+    promise.reject(Throwable("convertUPCProductToAttributes is deprecated"))
   }
 
   override fun onRecognitionResults(

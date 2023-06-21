@@ -5,7 +5,6 @@ import {
   DownloadingError,
   PassioSDK,
 } from '@passiolife/nutritionai-react-native-sdk-v2'
-import { downloadFile } from './utils/downloadFile'
 
 export type SDKStatus = 'init' | 'downloading' | 'error' | 'ready'
 
@@ -18,8 +17,6 @@ export const usePassioSDK = ({
   debugMode?: boolean
   autoUpdate?: boolean
 }) => {
-  const [localModelURLs, setLocalModelURLs] = useState<string[] | undefined>()
-  const [missingFiles, setMissingFiles] = useState<string[]>([])
   const [loadingState, setLoadingState] = useState<SDKStatus>('init')
   const [leftFile, setDownloadingLeft] = useState<number | null>(null)
 
@@ -30,11 +27,9 @@ export const usePassioSDK = ({
           key: key,
           debugMode: debugMode,
           autoUpdate: autoUpdate,
-          localModelURLs: autoUpdate ? undefined : localModelURLs,
         })
         switch (status.mode) {
           case 'notReady':
-            setMissingFiles(status.missingFiles)
             return
           case 'isReadyForDetection':
             setLoadingState('ready')
@@ -50,25 +45,7 @@ export const usePassioSDK = ({
       }
     }
     configure()
-  }, [key, localModelURLs, debugMode, autoUpdate])
-
-  useEffect(() => {
-    if (!missingFiles.length) {
-      return
-    }
-    async function download() {
-      setLoadingState('downloading')
-      const downloads = missingFiles.map(downloadFile)
-      try {
-        const localFiles = await Promise.all(downloads)
-        setLocalModelURLs(localFiles)
-      } catch (err) {
-        console.error(`PassioSDK Error ${err}`)
-        setLoadingState('error')
-      }
-    }
-    download()
-  }, [missingFiles])
+  }, [key, debugMode, autoUpdate])
 
   useEffect(() => {
     const callBacks = PassioSDK.onDowloadingPassioModelCallBacks({
