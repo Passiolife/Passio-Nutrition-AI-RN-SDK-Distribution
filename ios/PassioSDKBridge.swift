@@ -204,6 +204,24 @@ class PassioSDKBridge: RCTEventEmitter {
         
     }
     
+    @objc(detectFoodFromImageURI:withResolver:withRejecter:)
+    func detectFoodFromImageURI(imageUri: String,
+                                       resolve: @escaping RCTPromiseResolveBlock,
+                                       reject: @escaping RCTPromiseRejectBlock) {
+        let image = UIImage(contentsOfFile: imageUri)
+        if image == nil {
+            reject("PASSIO-SDK", "no image found", nil)
+        } else {
+            sdk.detectFoodIn(image: image!) { foodCandidates in
+                if let candidates = foodCandidates {
+                    resolve(bridgeFoodCandidate(candidates))
+                } else {
+                    reject("PASSIO-SDK", "no candidates", nil)
+                }
+            }
+        }
+    }
+
     override var methodQueue: DispatchQueue! {
         .main
     }

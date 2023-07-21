@@ -34,14 +34,7 @@ Please note that the SDK will currently not run in the iOS simulator. We hope to
 
 ## Installation
 
-1. Create an `.npmrc` file in the root of your project with the following lines, replacing `GITHUB_ACCESS_TOKEN` with the token provided to you by Passio. This grants you access to the SDK's private listing on Github Package Registry.
-
-```
-//npm.pkg.github.com/:_authToken=GITHUB_ACCESS_TOKEN
-@passiolife:registry=https://npm.pkg.github.com
-```
-
-2. Install the package using npm install @passiolife/nutritionai-react-native-sdk-v2 or yarn add @passiolife/nutritionai-react-native-sdk-v2
+1. Install the package using npm install @passiolife/nutritionai-react-native-sdk-v2 or yarn add @passiolife/nutritionai-react-native-sdk-v2
 
 3. Ensure the native dependencies are linked to your app.
 
@@ -137,3 +130,21 @@ useEffect(() => {
   return () => subscription.remove();
 }, [isReady]);
 ```
+
+## Known Issues / Workarounds
+
+If your project does not currently contain any Swift, you might get an undefined symbol errors for the Swift standard library when adding the Passio SDK. Since the Passio SDK is a Swift framework, your app needs to link against the Swift standard library. You can accomplish this by [adding a single Swift file to your project](https://stackoverflow.com/questions/57903395/about-100-error-in-xcode-undefined-symbols-for-architecture-x86-64-upgraded-re).
+
+Because the Passio SDK is a Swift framework and depends on `React-Core`, we need a modular header for this dependency. If you get an error regarding a missing module header for `React-Core`, update your Podfile to produce one:
+
+```ruby
+pod 'React-Core', :path => '../node_modules/react-native/', :modular_headers => true
+```
+
+## Steps to Publish:
+
+https://github.com/Passiolife/React-Native-Passio-SDK-Internal/wiki/Steps-To-Publish-RN-SDK
+
+## Notes
+
+With XCFramework, we do not need to maintain multiple SDKs for different version of XCode.

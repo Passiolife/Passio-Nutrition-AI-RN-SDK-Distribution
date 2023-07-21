@@ -40,4 +40,8 @@ RCT_EXTERN_METHOD(convertUPCProductToAttributes: (NSString *)upcJSON
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(detectFoodFromImageURI: (NSString *)imageUri
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 @end

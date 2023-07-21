@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6184D1B70FF3175FD2D6EF2E /* Pods_ReactNativeQuickstart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18118183DA81D0A343A1E9B1 /* Pods_ReactNativeQuickstart.framework */; };
 		8E24E86925DEE806009C758F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8E24E86325DEE806009C758F /* LaunchScreen.storyboard */; };
 		8E24E86A25DEE806009C758F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8E24E86525DEE806009C758F /* main.m */; };
 		8E24E86B25DEE806009C758F /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8E24E86625DEE806009C758F /* Images.xcassets */; };
 		8E24E86C25DEE806009C758F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8E24E86725DEE806009C758F /* AppDelegate.m */; };
 		8EA5258325D348DD009FAFE7 /* ReactNativeQuickstartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EA5258225D348DD009FAFE7 /* ReactNativeQuickstartTests.swift */; };
-		D0D0679ECEE53F98FAF9BEA9 /* Pods_ReactNativeQuickstart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A092D11748067BBD967C2B15 /* Pods_ReactNativeQuickstart.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,9 +47,10 @@
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* ReactNativeQuickstart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReactNativeQuickstart.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		18118183DA81D0A343A1E9B1 /* Pods_ReactNativeQuickstart.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ReactNativeQuickstart.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E47B1E0B4A5D006451C7 /* ReactNativeQuickstart-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ReactNativeQuickstart-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* ReactNativeQuickstart-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ReactNativeQuickstart-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		47F7ED3B7971BE374F7B8635 /* Pods-PassioSdkExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PassioSdkExample.debug.xcconfig"; path = "Target Support Files/Pods-PassioSdkExample/Pods-PassioSdkExample.debug.xcconfig"; sourceTree = "<group>"; };
+		75B6135CC6C6D7899561DA2A /* Pods-ReactNativeQuickstart.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeQuickstart.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeQuickstart/Pods-ReactNativeQuickstart.release.xcconfig"; sourceTree = "<group>"; };
 		8E24E86325DEE806009C758F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8E24E86425DEE806009C758F /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		8E24E86525DEE806009C758F /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -61,10 +62,7 @@
 		8EA5258225D348DD009FAFE7 /* ReactNativeQuickstartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactNativeQuickstartTests.swift; sourceTree = "<group>"; };
 		8EA5258425D348DD009FAFE7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8EC0120926CB00F0007A89B7 /* PassioSDKiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = PassioSDKiOS.xcframework; path = ../../ios/Frameworks/PassioSDKiOS.xcframework; sourceTree = "<group>"; };
-		A092D11748067BBD967C2B15 /* Pods_ReactNativeQuickstart.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ReactNativeQuickstart.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		B43209A727A2A5D4475A07D0 /* Pods-ReactNativeQuickstart.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeQuickstart.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeQuickstart/Pods-ReactNativeQuickstart.debug.xcconfig"; sourceTree = "<group>"; };
-		D8275BA8740CD64EB98AD29E /* Pods-ReactNativeQuickstart.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeQuickstart.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeQuickstart/Pods-ReactNativeQuickstart.release.xcconfig"; sourceTree = "<group>"; };
-		E00ACF0FDA8BF921659E2F9A /* Pods-PassioSdkExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PassioSdkExample.release.xcconfig"; path = "Target Support Files/Pods-PassioSdkExample/Pods-PassioSdkExample.release.xcconfig"; sourceTree = "<group>"; };
+		DED1D501C23351540185E7A0 /* Pods-ReactNativeQuickstart.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeQuickstart.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeQuickstart/Pods-ReactNativeQuickstart.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -73,7 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0D0679ECEE53F98FAF9BEA9 /* Pods_ReactNativeQuickstart.framework in Frameworks */,
+				6184D1B70FF3175FD2D6EF2E /* Pods_ReactNativeQuickstart.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,7 +104,7 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				8EC0120926CB00F0007A89B7 /* PassioSDKiOS.xcframework */,
-				A092D11748067BBD967C2B15 /* Pods_ReactNativeQuickstart.framework */,
+				18118183DA81D0A343A1E9B1 /* Pods_ReactNativeQuickstart.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -114,10 +112,8 @@
 		6B9684456A2045ADE5A6E47E /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				47F7ED3B7971BE374F7B8635 /* Pods-PassioSdkExample.debug.xcconfig */,
-				E00ACF0FDA8BF921659E2F9A /* Pods-PassioSdkExample.release.xcconfig */,
-				B43209A727A2A5D4475A07D0 /* Pods-ReactNativeQuickstart.debug.xcconfig */,
-				D8275BA8740CD64EB98AD29E /* Pods-ReactNativeQuickstart.release.xcconfig */,
+				DED1D501C23351540185E7A0 /* Pods-ReactNativeQuickstart.debug.xcconfig */,
+				75B6135CC6C6D7899561DA2A /* Pods-ReactNativeQuickstart.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -185,14 +181,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ReactNativeQuickstart" */;
 			buildPhases = (
-				4F0A6FC082772762E3E4C96C /* [CP] Check Pods Manifest.lock */,
+				CFF1C79AEE2C17929B2452DF /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				8E08D48A25D48EC100E36A80 /* Embed Frameworks */,
-				1F8F576F8ABD7BAC0B18DB27 /* [CP] Embed Pods Frameworks */,
+				CCB59CF654E1D34D8547EA91 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -357,7 +353,21 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
-		1F8F576F8ABD7BAC0B18DB27 /* [CP] Embed Pods Frameworks */ = {
+		2D02E4CB1E0B4B27006451C7 /* Bundle React Native Code And Images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native Code And Images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+		};
+		CCB59CF654E1D34D8547EA91 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -389,6 +399,7 @@
 				"${BUILT_PRODUCTS_DIR}/Yoga/yoga.framework",
 				"${BUILT_PRODUCTS_DIR}/fmt/fmt.framework",
 				"${BUILT_PRODUCTS_DIR}/glog/glog.framework",
+				"${BUILT_PRODUCTS_DIR}/react-native-image-picker/react_native_image_picker.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativePassioSDK/PassioNutritionAISDK.framework/PassioNutritionAISDK",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -418,6 +429,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/yoga.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/fmt.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_image_picker.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PassioNutritionAISDK.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -425,21 +437,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeQuickstart/Pods-ReactNativeQuickstart-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		2D02E4CB1E0B4B27006451C7 /* Bundle React Native Code And Images */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Bundle React Native Code And Images";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
-		};
-		4F0A6FC082772762E3E4C96C /* [CP] Check Pods Manifest.lock */ = {
+		CFF1C79AEE2C17929B2452DF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -551,7 +549,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B43209A727A2A5D4475A07D0 /* Pods-ReactNativeQuickstart.debug.xcconfig */;
+			baseConfigurationReference = DED1D501C23351540185E7A0 /* Pods-ReactNativeQuickstart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -581,7 +579,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D8275BA8740CD64EB98AD29E /* Pods-ReactNativeQuickstart.release.xcconfig */;
+			baseConfigurationReference = 75B6135CC6C6D7899561DA2A /* Pods-ReactNativeQuickstart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

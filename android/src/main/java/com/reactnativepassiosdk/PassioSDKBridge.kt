@@ -5,12 +5,18 @@ import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
 import ai.passio.passiosdk.passiofood.*
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+
 
 class PassioSDKBridge(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), FoodRecognitionListener {
@@ -49,14 +55,14 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
 
         override fun onCompletedDownloadingFile(fileUri: Uri, filesLeft: Int) {
           val map = WritableNativeMap()
-          map.putInt("filesLeft", filesLeft);
-          sendCompletedDownloadingFileEvent(map);
+          map.putInt("filesLeft", filesLeft)
+          sendCompletedDownloadingFileEvent(map)
         }
 
         override fun onDownloadError(message: String) {
           val map = WritableNativeMap()
           map.putString("message", message)
-          sendDownloadingErrorEvent(map);
+          sendDownloadingErrorEvent(map)
         }
 
         override fun onPassioStatusChanged(status: PassioStatus) {
@@ -158,6 +164,42 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun convertUPCProductToAttributes(productJSON: String, type: String, promise: Promise) {
     promise.reject(Throwable("convertUPCProductToAttributes is deprecated"))
+  }
+
+  @Throws(IOException::class)
+  fun loadBitmapFromCache(context: Context, imageName: String, rootFolder: String): Bitmap? {
+    val file = File(imageName)
+    if (!file.exists()) {
+      return null
+    }
+
+    val fis = FileInputStream(file)
+    val bitmap = BitmapFactory.decodeStream(fis)
+    fis.close()
+    return bitmap
+  }
+
+  @ReactMethod
+  fun detectFoodFromImageURI(imageUri: String, promise: Promise) {
+    val config = FoodDetectionConfiguration(
+      detectBarcodes = true,
+      detectVisual = true,
+      detectNutritionFacts = true,
+      detectPackagedFood = true
+    )
+    val imageBitmap = loadBitmapFromCache(reactApplicationContext.applicationContext, imageUri, "")
+    if (imageBitmap == null) {
+      promise.reject(Throwable("no image found"))
+    } else {
+      PassioSDK.instance.detectFoodIn(imageBitmap, config, onDetectionCompleted = { candidates ->
+        if (candidates == null) {
+          promise.reject(Throwable("no candidates"))
+        } else {
+          val map = bridgeFoodCandidates(candidates)
+          promise.resolve(map)
+        }
+      })
+    }
   }
 
   override fun onRecognitionResults(

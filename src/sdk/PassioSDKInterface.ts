@@ -2,6 +2,7 @@ import type {
   Barcode,
   ConfigurationOptions,
   DownloadModelCallBack,
+  FoodCandidates,
   FoodDetectionConfig,
   FoodDetectionEvent,
   FoodSearchResult,
@@ -88,6 +89,8 @@ export interface PassioSDKInterface {
   onDowloadingPassioModelCallBacks: (
     downloadModelCallBack: DownloadModelCallBack
   ) => Callback
+
+  detectFoodFromImageURI(imageUri: string): Promise<FoodCandidates | null>
 }
 
 /**

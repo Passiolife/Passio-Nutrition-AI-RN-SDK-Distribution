@@ -13,6 +13,7 @@ import type {
   CompletedDownloadingFile,
   DownloadModelCallBack,
   DownloadingError,
+  FoodCandidates,
 } from '../models'
 import type {
   Callback,
@@ -148,6 +149,16 @@ export const PassioSDK: PassioSDKInterface = {
       return Promise.reject(err)
     }
   },
+
+  async detectFoodFromImageURI(
+    imageUri: string
+  ): Promise<FoodCandidates | null> {
+    try {
+      return PassioSDKBridge.detectFoodFromImageURI(imageUri)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
 }
 
 function sdkIsSupported(): boolean {
@@ -156,7 +167,7 @@ function sdkIsSupported(): boolean {
     return majorVersionIOS >= 13
   }
   if (Platform.OS === 'android') {
-    const androidVersion = Platform.Version
+    const androidVersion = Number(Platform.Version)
     return androidVersion >= 21
   }
   return false
