@@ -311,7 +311,7 @@ private func bridgeFoodCandidate(_ val: FoodCandidates) -> [String: Any] {
     }
     
     if let packagedFoodCandidates = val.packagedFoodCandidates, packagedFoodCandidates.count > 0 {
-        body["packagedFoodCandidates"] = packagedFoodCandidates
+        body["packagedFoodCode"] = packagedFoodCandidates.map(bridgePackageFoodCandidate)
     }
     
     return body
@@ -405,6 +405,10 @@ private func bridgeBarcodeCandidate(_ val: BarcodeCandidate) -> [String: Any] {
         "barcode": val.value,
         "boundingBox": bridgeCGRect(val.boundingBox)
     ]
+}
+
+private func bridgePackageFoodCandidate(_ val: PackagedFoodCandidate) -> String {
+    return val.packagedFoodCode
 }
 
 private func bridgeFoodItem(_ val: PassioFoodItemData) -> [String: Any] {
