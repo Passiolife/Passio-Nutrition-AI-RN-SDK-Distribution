@@ -73,6 +73,7 @@ class PassioSDKBridge: RCTEventEmitter {
         
         let config = FoodDetectionConfiguration(
             detectVisual: true,
+            volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode.auto,
             detectBarcodes: detectBarcodes,
             detectPackagedFood: detectPackagedFood,
             nutritionFacts: detectNutritionFacts

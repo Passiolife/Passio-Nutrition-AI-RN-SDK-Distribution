@@ -19,13 +19,13 @@ public class DetectionCameraView: UIView {
     private let previewLayer: AVCaptureVideoPreviewLayer?
   
     public override init(frame: CGRect) {
-        previewLayer = PassioNutritionAI.shared.getPreviewLayer()
+        previewLayer = PassioNutritionAI.shared.getPreviewLayerWithGravity(volumeDetectionMode: .auto, videoGravity: .resizeAspectFill)
         super.init(frame: frame)
         setupPreview()
     }
   
     required init?(coder: NSCoder) {
-        previewLayer = PassioNutritionAI.shared.getPreviewLayer()
+        previewLayer = PassioNutritionAI.shared.getPreviewLayerWithGravity(volumeDetectionMode: .auto, videoGravity: .resizeAspectFill)
         super.init(coder: coder)
         setupPreview()
     }

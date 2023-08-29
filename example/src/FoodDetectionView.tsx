@@ -57,6 +57,9 @@ export const FoodDectionView = (props: Props) => {
           setState({
             candidates: attributes,
           })
+          candidates?.detectedCandidates.map(({ amountEstimate }) =>
+            console.log({ amountEstimate })
+          )
         } else if (nutritionFacts) {
           console.log(nutritionFacts)
           //TODO UI for nutrition facts
