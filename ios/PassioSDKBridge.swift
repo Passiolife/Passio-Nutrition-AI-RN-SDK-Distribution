@@ -210,10 +210,18 @@ class PassioSDKBridge: RCTEventEmitter {
                                        resolve: @escaping RCTPromiseResolveBlock,
                                        reject: @escaping RCTPromiseRejectBlock) {
         let image = UIImage(contentsOfFile: imageUri)
+        let config = FoodDetectionConfiguration(
+            detectVisual: true,
+            volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode.auto,
+            detectBarcodes: true,
+            detectPackagedFood: true,
+            nutritionFacts: true
+        )
+
         if image == nil {
             reject("PASSIO-SDK", "no image found", nil)
         } else {
-            sdk.detectFoodIn(image: image!) { foodCandidates in
+            sdk.detectFoodIn(image: image!, detectionConfig: config) { foodCandidates in
                 if let candidates = foodCandidates {
                     resolve(bridgeFoodCandidate(candidates))
                 } else {
@@ -323,7 +331,7 @@ private func bridgeDetectedCandidate(_ val: DetectedCandidate) -> [String: Any] 
     
     body["passioID"] = val.passioID
     body["confidence"] = val.confidence
-    body["boundingBox"] = val.boundingBox
+    body["boundingBox"] = bridgeCGRect(val.boundingBox)
     if let amountEstimate = val.amountEstimate, val.amountEstimate != nil {
         body["amountEstimate"] = bridgeAmountEstimate(amountEstimate)
     }
