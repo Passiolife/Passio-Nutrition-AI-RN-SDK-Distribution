@@ -61,4 +61,9 @@ export interface PassioIDAttributes {
    * food item credits to openfood.org when the data is coming from them
    */
   isOpenFood: boolean
+
+  /**
+   * tags related to this fooditem
+   */
+  tags?: string[]
 }

@@ -11,6 +11,7 @@ import type {
   PassioIDAttributes,
   PassioIDEntityType,
   PassioStatus,
+  PersonalizedAlternative,
   UPCProduct,
 } from '../models'
 
@@ -90,7 +91,22 @@ export interface PassioSDKInterface {
     downloadModelCallBack: DownloadModelCallBack
   ) => Callback
 
+  /**
+   * This method detect food from image uri.
+   * @param imageUri - The image uri to detect food.
+   * @returns A `Promise` resolving to a `FoodCandidates` object if the record exists in the database or `null` if not.
+   */
   detectFoodFromImageURI(imageUri: string): Promise<FoodCandidates | null>
+
+  /**
+   * This method adds personalized alternative to local database.
+   * Status: This method is experimental and only available in the iOS SDK.
+   * @param personalizedAlternative - The personalized alternative to add.
+   * @returns A `boolean` value indicating if the personalized alternative was added successfully.
+   */
+  addToPersonalization(
+    personalizedAlternative: PersonalizedAlternative
+  ): boolean
 }
 
 /**

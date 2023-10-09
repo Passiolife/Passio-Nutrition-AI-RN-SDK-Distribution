@@ -12,4 +12,11 @@ export interface NutritionFacts {
   fat?: number
   carbs?: number
   protein?: number
+  saturatedFat?: number
+  transFat?: number
+  cholesterol?: number
+  sodium?: number
+  dietaryFiber?: number
+  sugars?: number
+  sugarAlcohol?: number
 }

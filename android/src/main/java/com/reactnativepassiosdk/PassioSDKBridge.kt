@@ -1,5 +1,6 @@
 package com.reactnativepassiosdk
 
+import ai.passio.passiosdk.core.config.Bridge
 import ai.passio.passiosdk.core.config.PassioConfiguration
 import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
@@ -48,6 +49,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
         }
         this.debugMode = debugMode
         this.sdkDownloadsModels = autoUpdate
+        this.bridge = Bridge.REACT_NATIVE
       }
       PassioSDK.instance.setPassioStatusListener(object : PassioStatusListener {
         override fun onCompletedDownloadingAllFiles(fileUris: List<Uri>) {
@@ -211,6 +213,10 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     val event = WritableNativeMap()
 
     event.putMap("candidates", bridgeFoodCandidates(candidates))
+
+    if (image != null) {
+      event.putMap("image", bridgeBitmap(image))
+    }
 
     if (nutritionFacts != null) {
       event.putMap("nutritionFacts", bridgeNutritionFacts(nutritionFacts))

@@ -1,6 +1,6 @@
 {
   "name": "@passiolife/nutritionai-react-native-sdk-v2",
-  "version": "2.3.3-7",
+  "version": "2.3.11-1",
   "description": "React Native bindings for the Passio SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -58,7 +58,7 @@
     "@release-it/conventional-changelog": "^2.0.0",
     "@types/jest": "^26.0.0",
     "@types/react": "^16.9.19",
-    "@types/react-native": "0.62.13",
+    "@types/react-native": "0.68.5",
     "commitlint": "^11.0.0",
     "eslint": "^7.2.0",
     "eslint-config-prettier": "^7.0.0",

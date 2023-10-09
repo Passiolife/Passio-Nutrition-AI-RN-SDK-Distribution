@@ -27,7 +27,7 @@ class PassioSDKBridge: RCTEventEmitter {
         config.debugMode = debugMode
         config.sdkDownloadsModels = autoUpdate
         config.filesLocalURLs = localFiles
-        config.reactNativeBridged = true
+        config.bridge = .reactNative
         self.debugMode = debugMode == 0 ? false : true
         
         sdk.statusDelegate = self
@@ -230,6 +230,17 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
     }
+    
+    @objc(addToPersonalization:)
+    func addToPersonalization(personalizedAlternativeJSON: String) -> Bool {
+        guard let data = personalizedAlternativeJSON.data(using: .utf8),
+              let personalizedAlternative = try? JSONDecoder().decode(PersonalizedAlternative.self, from: data) else {
+            return false
+        }
+        sdk.addToPersonalization(personalizedAlternative: personalizedAlternative)
+        return true
+    }
+
 
     override var methodQueue: DispatchQueue! {
         .main
@@ -246,6 +257,10 @@ extension PassioSDKBridge: FoodRecognitionDelegate {
         
         if let candidates = candidates {
             body["candidates"] = bridgeFoodCandidate(candidates)
+        }
+        
+        if let image = image {
+            body["image"] = bridgeUIImage(image)
         }
         
         if let nutritionFacts = nutritionFacts,
@@ -372,6 +387,13 @@ private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] 
     body.addIfPresent(key: "fat", value: val.fat)
     body.addIfPresent(key: "carbs", value: val.carbs)
     body.addIfPresent(key: "protein", value: val.protein)
+    body.addIfPresent(key: "saturatedFat", value: val.saturatedFat)
+    body.addIfPresent(key: "transFat", value: val.transFat)
+    body.addIfPresent(key: "cholesterol", value: val.cholesterol)
+    body.addIfPresent(key: "sodium", value: val.sodium)
+    body.addIfPresent(key: "dietaryFiber", value: val.dietaryFiber)
+    body.addIfPresent(key: "sugars", value: val.sugars)
+    body.addIfPresent(key: "sugarAlcohol", value: val.sugarAlcohol)
     return body
 }
 
@@ -465,6 +487,7 @@ private func bridgeFoodItem(_ val: PassioFoodItemData) -> [String: Any] {
     body.addIfPresent(key: "vitaminA", value: bridgeMeasurementIU(val.totalVitaminA))
     body.addIfPresent(key: "ingredientsDescription", value: val.ingredientsDescription)
     body.addIfPresent(key: "barcode", value: val.barcode)
+    body.addIfPresent(key: "tags", value: val.tags)
     return body
 }
 
@@ -542,6 +565,14 @@ private func bridgeAmountEstimate(_ val: AmountEstimate) -> [String: Any] {
     body.addIfPresent(key: "weightEstimate", value: val.weightEstimate)
     return body
 }
+
+private func bridgeUIImage(_ val: UIImage) -> [String: Any]? {
+    if let base64 = val.jpegData(compressionQuality: 0.85)?.base64EncodedString() {
+        return ["base64": base64]
+    }
+    return nil
+}
+
 fileprivate extension Dictionary {
     
     mutating func addIfPresent(key: Key, value: Value?) {

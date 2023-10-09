@@ -140,11 +140,3 @@ Because the Passio SDK is a Swift framework and depends on `React-Core`, we need
 ```ruby
 pod 'React-Core', :path => '../node_modules/react-native/', :modular_headers => true
 ```
-
-## Steps to Publish:
-
-https://github.com/Passiolife/React-Native-Passio-SDK-Internal/wiki/Steps-To-Publish-RN-SDK
-
-## Notes
-
-With XCFramework, we do not need to maintain multiple SDKs for different version of XCode.

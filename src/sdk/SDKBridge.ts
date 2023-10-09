@@ -14,6 +14,7 @@ import type {
   DownloadModelCallBack,
   DownloadingError,
   FoodCandidates,
+  PersonalizedAlternative,
 } from '../models'
 import type {
   Callback,
@@ -158,6 +159,13 @@ export const PassioSDK: PassioSDKInterface = {
     } catch (err) {
       return Promise.reject(err)
     }
+  },
+
+  addToPersonalization(
+    personalizedAlternative: PersonalizedAlternative
+  ): boolean {
+    const json = JSON.stringify(personalizedAlternative)
+    return PassioSDKBridge.addToPersonalization(json)
   },
 }
 
