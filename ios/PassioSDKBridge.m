@@ -46,4 +46,8 @@ RCT_EXTERN_METHOD(detectFoodFromImageURI: (NSString *)imageUri
 
 RCT_EXTERN_METHOD(addToPersonalization: (NSString *)personalizedAlternativeJSON)
 
+RCT_EXTERN_METHOD(fetchTagsFor: (NSString *)passioID
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 @end

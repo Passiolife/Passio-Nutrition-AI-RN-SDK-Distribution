@@ -107,6 +107,13 @@ export interface PassioSDKInterface {
   addToPersonalization(
     personalizedAlternative: PersonalizedAlternative
   ): boolean
+
+  /**
+   * This method fetches tags for a given Passio ID.
+   * @param passioID - The Passio ID for the tags query.
+   * @returns A `string` array of tags if the record exists in the database or `null` if not.
+   */
+  fetchTagsForPassioID(passioID: PassioID): Promise<string[]>
 }
 
 /**

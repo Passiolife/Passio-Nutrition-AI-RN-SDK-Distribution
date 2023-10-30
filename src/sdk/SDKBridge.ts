@@ -167,6 +167,23 @@ export const PassioSDK: PassioSDKInterface = {
     const json = JSON.stringify(personalizedAlternative)
     return PassioSDKBridge.addToPersonalization(json)
   },
+
+  async fetchTagsForPassioID(passioID: PassioID): Promise<string[]> {
+    const attributes = await PassioSDKBridge.getAttributesForPassioID(
+      passioID
+    ).catch(() => {
+      Promise.reject('Error fetching attributes for passioID')
+    })
+    if (attributes?.foodItem?.tags) {
+      return attributes?.foodItem?.tags
+    }
+    const fetchedTags = await PassioSDKBridge.fetchTagsFor(
+      `${attributes?.foodItem?.passioID}`
+    ).catch(() => {
+      Promise.reject('Error fetching tags for passioID')
+    })
+    return fetchedTags
+  },
 }
 
 function sdkIsSupported(): boolean {

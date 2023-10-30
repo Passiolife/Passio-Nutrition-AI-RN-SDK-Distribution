@@ -204,6 +204,17 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     }
   }
 
+  @ReactMethod
+  fun fetchTagsFor(passioID: String, promise: Promise) {
+      PassioSDK.instance.fetchTagsFor(passioID, onTagsFetched = { tags ->
+        if (tags == null) {
+          promise.reject(Throwable("no tags"))
+        } else {
+          promise.resolve(tags.mapToStringArray())
+        }
+      })
+  }
+
   override fun onRecognitionResults(
     candidates: FoodCandidates,
     image: Bitmap?,

@@ -1,6 +1,6 @@
 {
   "name": "@passiolife/nutritionai-react-native-sdk-v2",
-  "version": "2.3.11-1",
+  "version": "2.3.11-2",
   "description": "React Native bindings for the Passio SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

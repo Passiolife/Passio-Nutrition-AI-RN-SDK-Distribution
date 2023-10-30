@@ -227,4 +227,9 @@ export interface PassioFoodItem {
    * The UPC code for this food product, if available
    */
   barcode?: string
+
+  /**
+   * tags related to this fooditem
+   */
+  tags?: string[]
 }

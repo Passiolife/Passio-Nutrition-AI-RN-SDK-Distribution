@@ -241,6 +241,18 @@ class PassioSDKBridge: RCTEventEmitter {
         return true
     }
 
+    @objc(fetchTagsFor:withResolver:withRejecter:)
+    func fetchTagsFor(passioID: String,
+                                       resolve: @escaping RCTPromiseResolveBlock,
+                                       reject: @escaping RCTPromiseRejectBlock) {
+        sdk.fetchTagsFor(passioID: passioID) { foodItemTags in
+            if let tags = foodItemTags {
+                resolve(tags)
+            } else {
+                reject("PASSIO-SDK", "no tags", nil)
+            }
+        }
+    }
 
     override var methodQueue: DispatchQueue! {
         .main
