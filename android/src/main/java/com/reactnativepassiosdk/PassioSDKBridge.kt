@@ -18,7 +18,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
-
 class PassioSDKBridge(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), FoodRecognitionListener {
 
@@ -32,7 +31,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     debugMode: Int,
     autoUpdate: Boolean,
     localModelURLs: ReadableArray?,
-    promise: Promise
+    promise: Promise,
   ) {
     mainHandler.post {
       val config = PassioConfiguration(reactApplicationContext, key).apply {
@@ -71,19 +70,21 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
           when (status.mode) {
             PassioMode.IS_DOWNLOADING_MODELS -> print("PassioSDK: auto update configured, downloading models...")
             PassioMode.IS_BEING_CONFIGURED -> {}
-              PassioMode.IS_READY_FOR_DETECTION -> {
+            PassioMode.IS_READY_FOR_DETECTION -> {
               val map = WritableNativeMap()
               map.putString("mode", "isReadyForDetection")
               map.putInt("activeModels", status.activeModels ?: 0)
               map.putArray("missingFiles", (status.missingFiles ?: listOf()).mapToStringArray())
               promise.resolve(map)
             }
+
             PassioMode.NOT_READY -> {
               val map = WritableNativeMap()
               map.putString("mode", "notReady")
               map.putArray("missingFiles", (status.missingFiles ?: listOf()).mapToStringArray())
               promise.resolve(map)
             }
+
             PassioMode.FAILED_TO_CONFIGURE -> {
               val error = status.error
               val errorMessage = if (error != null) {
@@ -107,7 +108,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   fun startFoodDetection(
     detectBarcodes: Boolean,
     detectPackagedFood: Boolean,
-    detectNutritionFacts: Boolean
+    detectNutritionFacts: Boolean,
   ) {
     mainHandler.post {
       val config = FoodDetectionConfiguration(
@@ -125,7 +126,6 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   fun stopFoodDetection() {
     // The function will return false if the unregistration of the current ```foodRecognitionListener``` failed.
     PassioSDK.instance.stopFoodDetection()
-
   }
 
   @ReactMethod
@@ -206,19 +206,19 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun fetchTagsFor(passioID: String, promise: Promise) {
-      PassioSDK.instance.fetchTagsFor(passioID, onTagsFetched = { tags ->
-        if (tags == null) {
-          promise.reject(Throwable("no tags"))
-        } else {
-          promise.resolve(tags.mapToStringArray())
-        }
-      })
+    PassioSDK.instance.fetchTagsFor(passioID, onTagsFetched = { tags ->
+      if (tags == null) {
+        promise.reject(Throwable("no tags"))
+      } else {
+        promise.resolve(tags.mapToStringArray())
+      }
+    })
   }
 
   override fun onRecognitionResults(
     candidates: FoodCandidates,
     image: Bitmap?,
-    nutritionFacts: PassioNutritionFacts?
+    nutritionFacts: PassioNutritionFacts?,
   ) {
 
     val event = WritableNativeMap()
@@ -252,5 +252,20 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     val emitter =
       reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
     emitter.emit("downloadingError", args)
+  }
+
+  @ReactMethod
+  fun fetchNutrientsFor(passioID: String, promise: Promise) {
+    PassioSDK.instance.fetchNutrientsFor(passioID, onResult = { nutrients ->
+      if (nutrients == null) {
+        promise.reject(Throwable("no nutrients for $passioID"))
+      } else {
+        val array = WritableNativeArray()
+        for (item in nutrients) {
+          array.pushMap(bridgePassioNutrient(item))
+        }
+        promise.resolve(array)
+      }
+    })
   }
 }

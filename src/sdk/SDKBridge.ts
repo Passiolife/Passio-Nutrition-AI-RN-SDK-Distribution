@@ -15,6 +15,7 @@ import type {
   DownloadingError,
   FoodCandidates,
   PersonalizedAlternative,
+  PassioNutrient,
 } from '../models'
 import type {
   Callback,
@@ -183,6 +184,12 @@ export const PassioSDK: PassioSDKInterface = {
       Promise.reject('Error fetching tags for passioID')
     })
     return fetchedTags
+  },
+
+  fetchNutrientsFor: function (
+    passioID: string
+  ): Promise<PassioNutrient[] | null> {
+    return PassioSDKBridge.fetchNutrientsFor(passioID)
   },
 }
 

@@ -10,6 +10,7 @@ import type {
   PassioID,
   PassioIDAttributes,
   PassioIDEntityType,
+  PassioNutrient,
   PassioStatus,
   PersonalizedAlternative,
   UPCProduct,
@@ -114,6 +115,13 @@ export interface PassioSDKInterface {
    * @returns A `string` array of tags if the record exists in the database or `null` if not.
    */
   fetchTagsForPassioID(passioID: PassioID): Promise<string[]>
+
+  /**
+   * fetch a map of nutrients for a 100 grams of a specific food item
+   * @param passioID - The Passio ID for the attributes query.
+   * @returns A `Promise` resolving to a `PassioNutrient` object if the record exists in the database or `null` if not.
+   */
+  fetchNutrientsFor(passioID: PassioID): Promise<PassioNutrient[] | null>
 }
 
 /**

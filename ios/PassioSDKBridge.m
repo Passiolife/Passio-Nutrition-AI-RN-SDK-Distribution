@@ -50,4 +50,9 @@ RCT_EXTERN_METHOD(fetchTagsFor: (NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(fetchNutrientsFor:(NSString *)passioID
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 @end
