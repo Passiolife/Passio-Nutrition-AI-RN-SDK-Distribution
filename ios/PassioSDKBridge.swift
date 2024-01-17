@@ -253,6 +253,23 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
     }
+    
+    @objc(fetchNutrientsFor:withResolver:withRejecter:)
+    func fetchNutrientsFor(passioID: String,
+                       resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+        
+        sdk.fetchNutrientsFor(passioID: passioID) { results in
+            
+            if let nutrients = results {
+                resolve(nutrients.map(bridgePassioNutrient))
+            } else {
+                reject("PASSIO-SDK", "no nutrients", nil)
+            }
+           
+        }
+    }
+    
 
     override var methodQueue: DispatchQueue! {
         .main
@@ -454,6 +471,8 @@ private func bridgePackageFoodCandidate(_ val: PackagedFoodCandidate) -> String 
     return val.packagedFoodCode
 }
 
+
+
 private func bridgeFoodItem(_ val: PassioFoodItemData) -> [String: Any] {
     var body: [String: Any] = [
         "passioID": val.passioID,
@@ -575,6 +594,16 @@ private func bridgeAmountEstimate(_ val: AmountEstimate) -> [String: Any] {
     body.addIfPresent(key: "viewingAngle", value: val.viewingAngle)
     body.addIfPresent(key: "volumeEstimate", value: val.volumeEstimate)
     body.addIfPresent(key: "weightEstimate", value: val.weightEstimate)
+    return body
+}
+
+private func bridgePassioNutrient(_ val: PassioNutrient) -> [String: Any] {
+    var body: [String: Any] = [
+        "amount": val.amount,
+        "name": val.name,
+        "inflammatoryEffectScore": val.inflammatoryEffectScore,
+        "unit": val.unit,
+    ]
     return body
 }
 

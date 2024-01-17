@@ -4,18 +4,16 @@ import ai.passio.passiosdk.passiofood.BarcodeCandidate
 import ai.passio.passiosdk.passiofood.DetectedCandidate
 import ai.passio.passiosdk.passiofood.FoodCandidates
 import ai.passio.passiosdk.passiofood.PassioID
+import ai.passio.passiosdk.passiofood.PassioNutrient
 import ai.passio.passiosdk.passiofood.data.measurement.UnitEnergy
 import ai.passio.passiosdk.passiofood.data.measurement.UnitMass
 import ai.passio.passiosdk.passiofood.data.model.*
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
-import android.R.attr.bitmap
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.Base64
-import android.util.Log
 import com.facebook.react.bridge.*
 import java.io.ByteArrayOutputStream
-
 
 fun bridgeFoodCandidates(candidates: FoodCandidates): ReadableMap {
   val map = WritableNativeMap()
@@ -96,35 +94,39 @@ fun bridgeFoodItem(foodItem: PassioFoodItemData): ReadableMap {
   val children =
     mapNullable(foodItem.children, { children -> children.mapBridged(::bridgeAlternative) })
   map.putIfNotNull("children", children)
-  map.putMap("calories", foodItem.totalCalories()?.let { bridgeUnitEnergy(it) })
-  map.putMap("carbs", foodItem.totalCarbs()?.let { bridgeUnitMass(it) })
-  map.putMap("fat", foodItem.totalFat()?.let { bridgeUnitMass(it) })
-  map.putMap("protein", foodItem.totalProtein()?.let { bridgeUnitMass(it) })
-  map.putMap("saturatedFat", foodItem.totalSatFat()?.let { bridgeUnitMass(it) })
-  map.putMap("transFat", foodItem.totalTransFat()?.let { bridgeUnitMass(it) })
-  map.putMap("monounsaturatedFat", foodItem.totalMonounsaturatedFat()?.let { bridgeUnitMass(it) })
-  map.putMap("polyunsaturatedFat", foodItem.totalPolyunsaturatedFat()?.let { bridgeUnitMass(it) })
-  map.putMap("cholesterol", foodItem.totalCholesterol()?.let { bridgeUnitMass(it) })
-  map.putMap("sodium", foodItem.totalSodium()?.let { bridgeUnitMass(it) })
-  map.putMap("fiber", foodItem.totalFibers()?.let { bridgeUnitMass(it) })
-  map.putMap("sugar", foodItem.totalSugars()?.let { bridgeUnitMass(it) })
-  map.putMap("sugarAdded", foodItem.totalSugarsAdded()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminD", foodItem.totalVitaminD()?.let { bridgeUnitMass(it) })
-  map.putMap("calcium", foodItem.totalCalcium()?.let { bridgeUnitMass(it) })
-  map.putMap("iron", foodItem.totalIron()?.let { bridgeUnitMass(it) })
-  map.putMap("potassium", foodItem.totalPotassium()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminC", foodItem.totalVitaminC()?.let { bridgeUnitMass(it) })
-  map.putMap("alcohol", foodItem.totalAlcohol()?.let { bridgeUnitMass(it) })
-  map.putMap("sugarAlcohol", foodItem.totalSugarAlcohol()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminB12", foodItem.totalVitaminB12()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminB12Added", foodItem.totalVitaminB12Added()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminB6", foodItem.totalVitaminB6()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminE", foodItem.totalVitaminE()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminEAdded", foodItem.totalVitaminEAdded()?.let { bridgeUnitMass(it) })
-  map.putMap("magnesium", foodItem.totalMagnesium()?.let { bridgeUnitMass(it) })
-  map.putMap("phosphorus", foodItem.totalPhosphorus()?.let { bridgeUnitMass(it) })
-  map.putMap("iodine", foodItem.totalIodine()?.let { bridgeUnitMass(it) })
-  map.putMap("vitaminA", foodItem.totalVitaminA()?.let { bridgeMeasurementIU(it) })
+  map.putIfNotNull("calories", foodItem.totalCalories()?.let { bridgeUnitEnergy(it) })
+  map.putIfNotNull("carbs", foodItem.totalCarbs()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("fat", foodItem.totalFat()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("protein", foodItem.totalProtein()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("saturatedFat", foodItem.totalSatFat()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("transFat", foodItem.totalTransFat()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull(
+    "monounsaturatedFat",
+    foodItem.totalMonounsaturatedFat()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull(
+    "polyunsaturatedFat",
+    foodItem.totalPolyunsaturatedFat()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("cholesterol", foodItem.totalCholesterol()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("sodium", foodItem.totalSodium()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("fiber", foodItem.totalFibers()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("sugar", foodItem.totalSugars()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("sugarAdded", foodItem.totalSugarsAdded()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminD", foodItem.totalVitaminD()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("calcium", foodItem.totalCalcium()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("iron", foodItem.totalIron()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("potassium", foodItem.totalPotassium()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminC", foodItem.totalVitaminC()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("alcohol", foodItem.totalAlcohol()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("sugarAlcohol", foodItem.totalSugarAlcohol()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminB12", foodItem.totalVitaminB12()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminB12Added", foodItem.totalVitaminB12Added()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminB6", foodItem.totalVitaminB6()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminE", foodItem.totalVitaminE()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminEAdded", foodItem.totalVitaminEAdded()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("magnesium", foodItem.totalMagnesium()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("phosphorus", foodItem.totalPhosphorus()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("iodine", foodItem.totalIodine()?.let { bridgeUnitMass(it) })
+  map.putIfNotNull("vitaminA", foodItem.totalVitaminA()?.let { bridgeMeasurementIU(it) })
   map.putIfNotNull("ingredientsDescription", foodItem.ingredientsDescription)
   map.putIfNotNull("barcode", foodItem.barcode)
   map.putIfNotNull("tags", foodItem.tags?.mapToStringArray())
@@ -177,21 +179,30 @@ fun bridgeServingUnits(servingUnit: PassioServingUnit): ReadableMap {
   return map
 }
 
-fun bridgeUnitMass(unitMass: UnitMass): ReadableMap{
+fun bridgeUnitMass(unitMass: UnitMass?): ReadableMap? {
+  if (unitMass == null) {
+    return null
+  }
   val map = WritableNativeMap()
   map.putString("unit", unitMass.unit.symbol)
   map.putDouble("value", unitMass.value)
   return map
 }
 
-fun bridgeMeasurementIU(value: Double): ReadableMap {
+fun bridgeMeasurementIU(value: Double?): ReadableMap? {
+  if (value == null) {
+    return null
+  }
   val map = WritableNativeMap()
   map.putString("unit", "IU")
   map.putDouble("value", value)
   return map
 }
 
-fun bridgeUnitEnergy(unitMass: UnitEnergy): ReadableMap {
+fun bridgeUnitEnergy(unitMass: UnitEnergy?): ReadableMap? {
+  if(unitMass == null){
+    return null
+  }
   val map = WritableNativeMap()
   map.putString("unit", unitMass.unit.symbol)
   map.putDouble("value", unitMass.value)
@@ -224,6 +235,15 @@ fun bridgeBitmap(value: Bitmap): ReadableMap {
   val byteArray = outputStream.toByteArray()
   val base64 = Base64.encodeToString(byteArray, Base64.DEFAULT)
   map.putString("base64", base64)
+  return map
+}
+
+fun bridgePassioNutrient(value: PassioNutrient): ReadableMap {
+  val map = WritableNativeMap()
+  map.putIfNotNull("name", value.name)
+  map.putIfNotNull("amount", value.amount)
+  map.putIfNotNull("unit", value.unit)
+  map.putIfNotNull("inflammatoryEffectScore", value.inflammatoryEffectScore)
   return map
 }
 
