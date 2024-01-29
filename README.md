@@ -17,6 +17,10 @@ See the [API docs](https://passio.gitbook.io/nutrition-ai/guides/react-native-sd
 
 Please note that the SDK will currently not run in the iOS simulator. We hope to change this in the future, but an iOS test device is required for now.
 
+## Changelog
+
+See the [API docs](https://passio.gitbook.io/nutrition-ai/guides/react-native-sdk-docs/changelog) for more details.
+
 
 ## Testing the SDK with Example App
 
