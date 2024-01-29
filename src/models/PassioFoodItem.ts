@@ -161,7 +161,7 @@ export interface PassioFoodItem {
   /**
    * Vitamin A, in IU
    */
-  vitaminA?: number
+  vitaminA?: UnitMass
 
   /**
    * Vitamin C, in milligrams
