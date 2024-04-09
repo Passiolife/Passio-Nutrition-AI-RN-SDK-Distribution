@@ -1,4 +1,8 @@
-import { requireNativeComponent, ViewProps, HostComponent } from 'react-native'
+import {
+  requireNativeComponent,
+  type ViewProps,
+  type HostComponent,
+} from 'react-native'
 /**
  * A component that displays the camera feed and sends camera frames
  * to the food detection models.

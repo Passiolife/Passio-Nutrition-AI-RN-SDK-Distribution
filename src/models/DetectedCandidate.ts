@@ -1,4 +1,5 @@
 import type { AmountEstimate, BoundingBox, PassioID } from '.'
+import type { ImagesInfo } from './v3'
 
 /**
  * A food candidate detected from visual scanning
@@ -24,4 +25,16 @@ export interface DetectedCandidate {
    * Scanned AmountEstimate
    */
   amountEstimate?: AmountEstimate
+
+  /**
+   * The nutritional data for this item in the database
+   */
+  foodName?: string
+
+  /**
+   * Related items above this item in the food heirarchy (more generic)
+   */
+  alternatives?: DetectedCandidate[] | null
+
+  croppedImage?: ImagesInfo[] | null
 }

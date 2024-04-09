@@ -1,12 +1,12 @@
 import type {
   Measurement,
-  PassioAlternative,
   PassioID,
   PassioIDEntityType,
   ServingSize,
   ServingUnit,
   UnitMass,
-} from '.'
+} from '..'
+import type { PassioAlternative } from './PassioAlternative'
 
 /**
  * Nutritional information for an item in the food database.

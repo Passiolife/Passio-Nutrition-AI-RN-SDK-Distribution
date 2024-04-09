@@ -22,9 +22,13 @@ public class PassioIconView: UIView {
                 let size = IconSize(rawValue: config["iconSize"] as? String ?? IconSize.px90.rawValue ) ?? IconSize.px90
                 let entityType = PassioIDEntityType(rawValue: config["passioIDEntityType"] as? String ?? PassioIDEntityType.item.rawValue ) ?? PassioIDEntityType.item
                 
-                let result =  PassioNutritionAI.shared.lookupIconFor(passioID: passioID, size: size, entityType: entityType)
+                let result =  PassioNutritionAI.shared.lookupIconsFor(passioID: passioID,size:size,entityType: entityType)
+                
+                
                 self.imageView.image = result.0
-                if !result.1 {
+                
+                
+                if result.1 === nil {
                     PassioNutritionAI.shared.fetchIconFor(passioID: passioID, size: size) { [weak self] image in
                         guard let self = self else {return}
                         DispatchQueue.main.async {
@@ -33,6 +37,8 @@ public class PassioIconView: UIView {
                             }
                         }
                     }
+                }else{
+                    self.imageView.image = result.1
                 }
             }else{
                 print("ERROR - PASSIO-SDK | PassioIconView must be require passioID")
@@ -64,4 +70,3 @@ public class PassioIconView: UIView {
         ])
     }
 }
-

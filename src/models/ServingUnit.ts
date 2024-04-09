@@ -6,4 +6,5 @@ export interface ServingUnit {
   unitName: string
   // The mass of a serving unit in grams (1 container = 60g)
   value: number
+  unit: string
 }

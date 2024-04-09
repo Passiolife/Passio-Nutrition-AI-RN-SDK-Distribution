@@ -1,11 +1,14 @@
-import { requireNativeComponent, ViewProps, HostComponent } from 'react-native'
-import type { PassioIDEntityType, IconSize, PassioID } from 'src/models'
+import {
+  requireNativeComponent,
+  type ViewProps,
+  type HostComponent,
+} from 'react-native'
+import type { IconSize, PassioID } from '../models'
 
 type Props = {
   config: {
     passioID: PassioID
     iconSize: IconSize
-    passioIDEntityType: PassioIDEntityType
   }
 } & ViewProps
 

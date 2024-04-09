@@ -14,10 +14,13 @@
     "reinstall": "cd ..; yarn prepare && cd example; rm -rf node_modules/ && rm -rf yarn.lock && yarn && cd ios; pod install; cd .."
   },
   "dependencies": {
+    "@gorhom/bottom-sheet": "^4.6.1",
     "@passiolife/nutritionai-react-native-sdk-v2": "link:../",
     "react": "17.0.2",
     "react-native": "0.68.5",
-    "react-native-image-picker": "4.10.3"
+    "react-native-gesture-handler": "^2.15.0",
+    "react-native-image-picker": "4.10.3",
+    "react-native-reanimated": "^3.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
