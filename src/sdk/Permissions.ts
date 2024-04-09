@@ -3,7 +3,7 @@ import { PermissionsAndroid } from 'react-native'
 export async function requestAndroidCameraPermission(): Promise<boolean> {
   try {
     const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.CAMERA,
+      'android.permission.CAMERA',
       {
         title: 'Food Recognition Camera Permission',
         message: 'Grant access to your camera for real-time food recognition.',
@@ -12,7 +12,7 @@ export async function requestAndroidCameraPermission(): Promise<boolean> {
         buttonPositive: 'OK',
       }
     )
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    if (granted === 'granted') {
       return Promise.resolve(true)
     } else {
       return Promise.resolve(false)

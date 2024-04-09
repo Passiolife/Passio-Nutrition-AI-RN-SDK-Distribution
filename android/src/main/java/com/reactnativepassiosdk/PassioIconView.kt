@@ -27,14 +27,15 @@ class PassioIconView(context: Context) : FrameLayout(context) {
     iconSize: IconSize
   ) {
     try {
-      val result = PassioSDK.instance.lookupIconFor(
+      val result = PassioSDK.instance.lookupIconsFor(
         context = context,
         passioID = passioID,
         iconSize = iconSize,
         type = passioIDEntityType
       )
       imageView.setImageDrawable(result.first)
-      if (!result.second) {
+
+      if (result.second === null) {
         PassioSDK.instance.fetchIconFor(context = context,
           iconSize = iconSize,
           passioID = passioID, callback = {
@@ -42,6 +43,8 @@ class PassioIconView(context: Context) : FrameLayout(context) {
               imageView.setImageDrawable(it)
             }
           })
+      }else{
+        imageView.setImageDrawable(result.second)
       }
     } catch (ex: IOException) {
       Log.e("PassioIconView", "Unable to load Passio image $passioID. Exception: $ex")

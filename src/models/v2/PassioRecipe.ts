@@ -1,4 +1,5 @@
-import type { PassioFoodItem, PassioID, ServingSize, ServingUnit } from '.'
+import type { PassioID, ServingSize, ServingUnit } from '..'
+import type { PassioFoodItem } from './PassioFoodItem'
 
 /*
  * A food recipe from the nutrition database.

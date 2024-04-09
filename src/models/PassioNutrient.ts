@@ -1,6 +1,6 @@
 export interface PassioNutrient {
   // The name of the nutrient.
-  name: string
+  nutrient: string
 
   // The amount of the nutrient, measured in a specific unit.
   amount?: number

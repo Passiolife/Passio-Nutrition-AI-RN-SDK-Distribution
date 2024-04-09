@@ -4,6 +4,7 @@ import ai.passio.passiosdk.core.config.Bridge
 import ai.passio.passiosdk.core.config.PassioConfiguration
 import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
+import ai.passio.passiosdk.core.icons.IconSize
 import ai.passio.passiosdk.passiofood.*
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
 import android.content.Context
@@ -130,36 +131,77 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun getAttributesForPassioID(passioID: String, promise: Promise) {
-    val attributes =
-      PassioSDK.instance.lookupPassioAttributesFor(passioID) ?: return promise.resolve(null)
-    val map = bridgePassioAttributes(attributes)
-    promise.resolve(map)
+    PassioSDK.instance.fetchFoodItemForPassioID(passioID) { attributes ->
+      if (attributes === null) {
+        promise.resolve(null)
+      } else {
+        val map = bridgePassioFoodItem(attributes)
+        promise.resolve(map)
+      }
+    }
   }
 
   @ReactMethod
   fun fetchAttributesForBarcode(barcode: String, promise: Promise) {
-    PassioSDK.instance.fetchPassioIDAttributesForBarcode(barcode) { attributes ->
-      val mapped = mapNullable(attributes, ::bridgePassioAttributes)
+    PassioSDK.instance.fetchFoodItemForProductCode(barcode) { attributes ->
+      val mapped = mapNullable(attributes, ::bridgePassioFoodItem)
       promise.resolve(mapped)
     }
   }
 
   @ReactMethod
   fun fetchPassioIDAttributesForPackagedFood(packagedFoodCode: String, promise: Promise) {
-    PassioSDK.instance.fetchPassioIDAttributesForPackagedFood(packagedFoodCode) { attributes ->
-      val mapped = mapNullable(attributes, ::bridgePassioAttributes)
+    PassioSDK.instance.fetchFoodItemForProductCode(packagedFoodCode) { attributes ->
+      val mapped = mapNullable(attributes, ::bridgePassioFoodItem)
       promise.resolve(mapped)
     }
   }
 
   @ReactMethod
-  fun searchForFood(searchQuery: String, promise: Promise) {
-    PassioSDK.instance.searchForFood(byText = searchQuery, callback = { results ->
+  fun fetchSuggestions(mealTime: String, promise: Promise) {
+    PassioSDK.instance.fetchSuggestions(MealTime.valueOf(mealTime.uppercase())) { result ->
       val array = WritableNativeArray()
-      for (item in results) {
-        array.pushMap(bridgeSearchResult(result = item))
+      for (item in result) {
+        array.pushMap(bridgePassioSearchResult(item))
       }
       promise.resolve(array)
+    }
+  }
+
+
+  @ReactMethod
+  fun searchForFood(searchQuery: String, promise: Promise) {
+    PassioSDK.instance.searchForFood(term = searchQuery, callback = { results, alternatives ->
+      val map = WritableNativeMap()
+      val mapAlternatives = alternatives.mapToStringArray()
+      val mapPassioSearchResult = results.mapBridged(::bridgePassioSearchResult)
+      map.putIfNotNull("results", mapPassioSearchResult)
+      map.putIfNotNull("alternatives", mapAlternatives)
+      promise.resolve(map)
+    })
+  }
+
+
+  @ReactMethod
+  fun fetchFoodItemForSuggestion(searchQuery: ReadableMap, promise: Promise) {
+    PassioSDK.instance.fetchFoodItemForSuggestion(suggestion = bridgeSearchQuery(searchQuery), callback = { item ->
+      if (item !== null) {
+        promise.resolve(bridgePassioFoodItem(item))
+      } else {
+        promise.resolve(null)
+      }
+    })
+  }
+
+
+  @ReactMethod
+  fun fetchSearchResult(searchQuery: ReadableMap, promise: Promise) {
+    PassioSDK.instance.fetchFoodItemForSearchResult(searchResult = bridgeSearchQuery(searchQuery), callback = { item ->
+      if (item !== null) {
+        promise.resolve(bridgePassioFoodItem(item))
+      } else {
+        promise.resolve(null)
+      }
     })
   }
 
@@ -215,27 +257,6 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     })
   }
 
-  override fun onRecognitionResults(
-    candidates: FoodCandidates,
-    image: Bitmap?,
-    nutritionFacts: PassioNutritionFacts?,
-  ) {
-
-    val event = WritableNativeMap()
-
-    event.putMap("candidates", bridgeFoodCandidates(candidates))
-
-    if (image != null) {
-      event.putMap("image", bridgeBitmap(image))
-    }
-
-    if (nutritionFacts != null) {
-      event.putMap("nutritionFacts", bridgeNutritionFacts(nutritionFacts))
-    }
-
-    sendDetectionEvent(event)
-  }
-
   private fun sendDetectionEvent(args: ReadableMap) {
     val emitter =
       reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -256,16 +277,36 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun fetchNutrientsFor(passioID: String, promise: Promise) {
-    PassioSDK.instance.fetchNutrientsFor(passioID, onResult = { nutrients ->
+    PassioSDK.instance.fetchInflammatoryEffectData(passioID, onResult = { nutrients ->
       if (nutrients == null) {
         promise.reject(Throwable("no nutrients for $passioID"))
       } else {
         val array = WritableNativeArray()
         for (item in nutrients) {
-          array.pushMap(bridgePassioNutrient(item))
+          array.pushMap(bridgeInflammatoryEffectData(item))
         }
         promise.resolve(array)
       }
     })
+  }
+
+  override fun onRecognitionResults(
+    candidates: FoodCandidates?,
+    image: Bitmap?,
+    nutritionFacts: PassioNutritionFacts?,
+  ) {
+    val event = WritableNativeMap()
+
+    event.putMap("candidates", bridgeFoodCandidates(candidates))
+
+    if (image != null) {
+      event.putMap("image", bridgeBitmap(image))
+    }
+
+    if (nutritionFacts != null) {
+      event.putMap("nutritionFacts", bridgeNutritionFacts(nutritionFacts))
+    }
+
+    sendDetectionEvent(event)
   }
 }

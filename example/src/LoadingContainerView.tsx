@@ -1,14 +1,41 @@
 import React, { useCallback, useState } from 'react'
-import { StyleSheet, View, Image, Button, Text } from 'react-native'
-import { FoodDectionView } from './FoodDetectionView'
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  Pressable,
+  Modal,
+  ImageBackground,
+  Alert,
+  Dimensions,
+} from 'react-native'
+import { FoodDetectionView } from './detailScan/FoodDetectionView'
 import { SDKStatus, useCameraAuthorization, usePassioSDK } from './App.hooks'
-import { FoodDetectionFromImage } from './FoodDetectionFromImage'
 import { launchImageLibrary } from 'react-native-image-picker'
+import { FoodSearchView } from './search'
+import { MultiScanView } from './multiScan/MultiScanView'
+import { QuickScanningScreen } from './quick/QuickScanningScreen'
+import {
+  PassioSDK,
+  type PassioFoodItem,
+} from '@passiolife/nutritionai-react-native-sdk-v2'
+import FoodDetail from './editor/FoodDetail'
+import { FoodSuggestion } from './suggestion'
+
+type ViewType =
+  | 'Scan'
+  | 'Search'
+  | 'MultiScan'
+  | 'Home'
+  | 'Quick'
+  | 'Suggestion'
+
+const logo = require('./assets/passio_logo.png')
 
 export const LoadingContainerView = () => {
-  const [isStarted, setIsStarted] = useState(false)
-  const [imageUri, setImageUri] = useState('')
-
+  const [viewType, setViewType] = useState<ViewType>('Home')
+  const [loading, setLoading] = useState(false)
   const cameraAuthorized = useCameraAuthorization()
 
   const sdkStatus = usePassioSDK({
@@ -16,79 +43,278 @@ export const LoadingContainerView = () => {
     autoUpdate: true,
   })
 
+  const [passioFoodItem, setPassioFoodItem] = useState<PassioFoodItem | null>(
+    null
+  )
+
   const onStart = useCallback(() => {
-    setIsStarted(true)
+    setViewType('Scan')
   }, [])
 
-  const onStop = useCallback(() => {
-    setIsStarted(false)
+  const onBackToHome = useCallback(() => {
+    setViewType('Home')
   }, [])
 
   const onScanImage = useCallback(async () => {
-    const { assets } = await launchImageLibrary({ mediaType: 'photo' })
-    setImageUri(assets?.[0].uri?.replace('file://', '') ?? '')
+    try {
+      const { assets } = await launchImageLibrary({ mediaType: 'photo' })
+      if (assets) {
+        setLoading(true)
+        PassioSDK.detectFoodFromImageURI(
+          assets?.[0].uri?.replace('file://', '') ?? ''
+        )
+          .then(async (candidates) => {
+            const max = candidates?.detectedCandidates?.reduce(function (
+              prev,
+              current
+            ) {
+              return prev && prev.confidence > current.confidence
+                ? prev
+                : current
+            })
+
+            if (max) {
+              if (max.passioID) {
+                const result = await PassioSDK.getAttributesForPassioID(
+                  max.passioID
+                )
+                setPassioFoodItem(result)
+              } else {
+              }
+            }
+          })
+          .catch(() => {
+            Alert.alert('Unable to recognized this image')
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      }
+    } catch (err) {
+      setLoading(false)
+    }
   }, [])
 
-  if (isStarted) {
-    return <FoodDectionView onStopPressed={onStop} />
-  }
+  const onSearchFood = useCallback(() => {
+    setViewType('Search')
+  }, [])
+
+  const onSuggestion = useCallback(() => {
+    setViewType('Suggestion')
+  }, [])
+
+  const onMultiScanning = useCallback(() => {
+    setViewType('MultiScan')
+  }, [])
+
+  const onQuickScanning = useCallback(() => {
+    setViewType('Quick')
+  }, [])
 
   return (
-    <LoadingView
-      status={sdkStatus.loadingState}
-      cameraAuthorized={cameraAuthorized}
-      fileLeft={sdkStatus.leftFile}
-      onPressStart={onStart}
-      imageUri={imageUri}
-      onScanImagePress={onScanImage}
-    />
+    <>
+      {(() => {
+        switch (viewType) {
+          case 'Scan':
+            return (
+              <FoodDetectionView
+                onStopPressed={onBackToHome}
+                onItemPress={setPassioFoodItem}
+              />
+            )
+
+          case 'Search':
+            return (
+              <FoodSearchView
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+          case 'Suggestion':
+            return (
+              <FoodSuggestion
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+
+          case 'MultiScan':
+            return (
+              <MultiScanView
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+
+          case 'Quick':
+            return (
+              <QuickScanningScreen
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+
+          default:
+            // Handle invalid viewType or provide a default view
+            return (
+              <LoadingView
+                status={sdkStatus.loadingState}
+                cameraAuthorized={cameraAuthorized}
+                fileLeft={sdkStatus.leftFile}
+                onPressStart={onStart}
+                imageUri={''}
+                loading={loading}
+                onScanImagePress={onScanImage}
+                onSearchFood={onSearchFood}
+                onMultiScanning={onMultiScanning}
+                onQuickScanning={onQuickScanning}
+                onSuggestion={onSuggestion}
+              />
+            )
+        }
+      })()}
+      <Modal visible={passioFoodItem !== null}>
+        {passioFoodItem ? (
+          <FoodDetail
+            onClose={() => {
+              setPassioFoodItem(null)
+            }}
+            passioFoodItem={passioFoodItem}
+          />
+        ) : null}
+      </Modal>
+    </>
   )
 }
 
-const logo = require('./assets/passio_logo.png')
+const FeatureButton = ({
+  title,
+  onClick,
+}: {
+  title: string
+  onClick: () => void
+}) => {
+  return (
+    <Pressable style={styles.buttonContainer} onPress={onClick}>
+      <Text style={styles.buttonText}>{title}</Text>
+    </Pressable>
+  )
+}
 
 const LoadingView = (props: {
   status: SDKStatus
   cameraAuthorized: boolean
+  loading: boolean
   fileLeft: number | null
   onPressStart: () => void
   imageUri: string
   onScanImagePress: () => void
+  onSearchFood: () => void
+  onSuggestion: () => void
+  onMultiScanning: () => void
+  onQuickScanning: () => void
 }) => {
   return (
-    <View style={styles.container}>
-      <Image source={logo} />
-      {props.status === 'downloading' ? (
-        <Text>{`'Downloading models... `}</Text>
-      ) : null}
-      {props.status === 'error' ? <Text>{'Error!'}</Text> : null}
-      {props.fileLeft !== null && props.fileLeft !== 0 ? (
-        <Text>{`Downloading file lefts... ${props.fileLeft}`}</Text>
-      ) : null}
-      {props.status === 'ready' && props.cameraAuthorized ? (
-        <Button title="Start Scanning" onPress={props.onPressStart} />
-      ) : null}
-      {props.status === 'ready' ? (
-        <>
-          <View style={styles.space} />
-          <Button title="Scan from an Image" onPress={props.onScanImagePress} />
-          <FoodDetectionFromImage imageUri={props.imageUri} />
-        </>
-      ) : null}
-    </View>
+    <ImageBackground
+      source={require('./assets/splash.png')}
+      style={styles.container}
+    >
+      <Image
+        source={logo}
+        style={styles.logo}
+        resizeMode="contain"
+        resizeMethod="resize"
+      />
+      <View style={styles.actions}>
+        {props.status === 'downloading' ? (
+          <Text>{`'Downloading models... `}</Text>
+        ) : null}
+        {props.status === 'error' ? <Text>{'Error!'}</Text> : null}
+        {props.fileLeft !== null && props.fileLeft !== 0 ? (
+          <Text>{`Downloading file lefts... ${props.fileLeft}`}</Text>
+        ) : null}
+
+        {props.status === 'ready' ? (
+          <>
+            <View style={styles.space} />
+            <FeatureButton title="Text Search" onClick={props.onSearchFood} />
+            {props.status === 'ready' && props.cameraAuthorized ? (
+              <>
+                <FeatureButton
+                  title="Food Scanner"
+                  onClick={props.onPressStart}
+                />
+                <FeatureButton
+                  title="Quick Scan"
+                  onClick={props.onQuickScanning}
+                />
+                <FeatureButton
+                  title="Multi Scan (Only visual food)"
+                  onClick={props.onMultiScanning}
+                />
+              </>
+            ) : null}
+            <FeatureButton
+              title="Meal Suggestion"
+              onClick={props.onSuggestion}
+            />
+
+            <FeatureButton
+              title={props.loading ? 'Please wait, Loading...' : 'Pick Image'}
+              onClick={props.onScanImagePress}
+            />
+          </>
+        ) : null}
+      </View>
+    </ImageBackground>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: 'rgba(79, 70, 229, 1)',
+  },
+  loader: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    top: Dimensions.get('window').height / 2,
+    bottom: 0,
+    margin: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
-    height: '100%',
+    alignSelf: 'center',
+    height: 150,
+    padding: 16,
+    right: 0,
+    left: 0,
   },
   logo: {
-    height: 200,
-    width: 200,
+    height: 150,
+    width: 300,
+    alignSelf: 'center',
+    flex: 1,
+  },
+  actions: {
+    flex: 1,
+  },
+  buttonContainer: {
+    padding: 16,
+    flexDirection: 'row',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    borderColor: 'blue',
+    backgroundColor: 'rgba(0, 0, 0, 0.50)',
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 0.1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 0.5,
+    marginVertical: 6,
+  },
+  buttonText: {
+    flex: 1,
+    color: 'white',
+    fontWeight: '600',
   },
   space: {
     margin: 10,

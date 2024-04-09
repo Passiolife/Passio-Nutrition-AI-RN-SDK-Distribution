@@ -48,9 +48,8 @@ export const usePassioSDK = ({
   }, [key, debugMode, autoUpdate])
 
   useEffect(() => {
-    const callBacks = PassioSDK.onDowloadingPassioModelCallBacks({
+    const callBacks = PassioSDK.onDownloadingPassioModelCallBacks({
       completedDownloadingFile: ({ filesLeft }: CompletedDownloadingFile) => {
-        console.log('filesLeft ===>', filesLeft)
         setDownloadingLeft(filesLeft)
       },
       downloadingError: ({ message }: DownloadingError) => {

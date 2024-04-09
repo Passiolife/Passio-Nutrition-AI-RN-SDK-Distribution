@@ -3,8 +3,8 @@ package com.reactnativepassiosdk
 import ai.passio.passiosdk.passiofood.BarcodeCandidate
 import ai.passio.passiosdk.passiofood.DetectedCandidate
 import ai.passio.passiosdk.passiofood.FoodCandidates
+import ai.passio.passiosdk.passiofood.InflammatoryEffectData
 import ai.passio.passiosdk.passiofood.PassioID
-import ai.passio.passiosdk.passiofood.PassioNutrient
 import ai.passio.passiosdk.passiofood.data.measurement.UnitEnergy
 import ai.passio.passiosdk.passiofood.data.measurement.UnitMass
 import ai.passio.passiosdk.passiofood.data.model.*
@@ -15,8 +15,13 @@ import android.util.Base64
 import com.facebook.react.bridge.*
 import java.io.ByteArrayOutputStream
 
-fun bridgeFoodCandidates(candidates: FoodCandidates): ReadableMap {
+fun bridgeFoodCandidates(candidates: FoodCandidates?): ReadableMap? {
   val map = WritableNativeMap()
+
+  if (candidates === null) {
+    return null
+  }
+
   if (candidates.detectedCandidates != null) {
     val detectedCandidates = WritableNativeArray()
     for (candidate in candidates.detectedCandidates!!) {
@@ -38,13 +43,17 @@ fun bridgeFoodCandidates(candidates: FoodCandidates): ReadableMap {
     }
     map.putArray("packagedFoodCode", packagedFoodCode)
   }
+
   return map
 }
 
 fun bridgeDetectedCandidate(candidate: DetectedCandidate): ReadableMap {
   val map = WritableNativeMap()
   map.putString("passioID", candidate.passioID)
+  map.putString("foodName", candidate.foodName)
   map.putDouble("confidence", candidate.confidence.toDouble())
+  map.putIfNotNull("croppedImage", bridgeBitmap(candidate.croppedImage))
+  map.putIfNotNull("alternatives", candidate.alternatives?.mapBridged ( ::bridgeDetectedCandidate ))
   map.putMap("boundingBox", bridgeBoundingBox(candidate.boundingBox))
   return map
 }
@@ -176,6 +185,7 @@ fun bridgeServingUnits(servingUnit: PassioServingUnit): ReadableMap {
   val map = WritableNativeMap()
   map.putString("unitName", servingUnit.unitName)
   map.putDouble("value", servingUnit.weight.value)
+  map.putString("unit", servingUnit.weight.unit.symbol)
   return map
 }
 
@@ -200,7 +210,7 @@ fun bridgeMeasurementIU(value: Double?): ReadableMap? {
 }
 
 fun bridgeUnitEnergy(unitMass: UnitEnergy?): ReadableMap? {
-  if(unitMass == null){
+  if (unitMass == null) {
     return null
   }
   val map = WritableNativeMap()
@@ -228,7 +238,10 @@ fun bridgeSearchResult(result: Pair<PassioID, String>): ReadableMap {
   return map
 }
 
-fun bridgeBitmap(value: Bitmap): ReadableMap {
+fun bridgeBitmap(value: Bitmap?): ReadableMap? {
+  if(value==null){
+    return  null
+  }
   val map = WritableNativeMap()
   val outputStream = ByteArrayOutputStream()
   value.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
@@ -238,15 +251,20 @@ fun bridgeBitmap(value: Bitmap): ReadableMap {
   return map
 }
 
-fun bridgePassioNutrient(value: PassioNutrient): ReadableMap {
+fun bridgeInflammatoryEffectData(value: InflammatoryEffectData): ReadableMap {
   val map = WritableNativeMap()
-  map.putIfNotNull("name", value.name)
+  map.putIfNotNull("nutrient", value.nutrient)
   map.putIfNotNull("amount", value.amount)
   map.putIfNotNull("unit", value.unit)
   map.putIfNotNull("inflammatoryEffectScore", value.inflammatoryEffectScore)
   return map
 }
 
+fun WritableMap.putIfNotNull(key: String, value: Boolean?) {
+  if (value != null) {
+    putBoolean(key, value)
+  }
+}
 fun WritableMap.putIfNotNull(key: String, value: String?) {
   if (value != null) {
     putString(key, value)
@@ -256,6 +274,12 @@ fun WritableMap.putIfNotNull(key: String, value: String?) {
 fun WritableMap.putIfNotNull(key: String, value: Double?) {
   if (value != null) {
     putDouble(key, value)
+  }
+}
+
+fun WritableMap.putIfNotNull(key: String, value: Int?) {
+  if (value != null) {
+    putInt(key, value)
   }
 }
 
@@ -303,3 +327,5 @@ fun <T> mapStringArray(array: ReadableArray, map: (String) -> T): List<T> {
   }
   return mapped
 }
+
+

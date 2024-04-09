@@ -1,4 +1,4 @@
-import type { PassioID } from '.'
+import type { PassioID } from '..'
 
 /**
  * A food item that is a close relative and possible alternative for another food item

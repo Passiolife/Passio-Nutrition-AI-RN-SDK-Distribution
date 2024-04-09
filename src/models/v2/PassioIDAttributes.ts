@@ -1,10 +1,7 @@
-import type {
-  PassioAlternative,
-  PassioFoodItem,
-  PassioID,
-  PassioIDEntityType,
-  PassioRecipe,
-} from '.'
+import type { PassioID, PassioIDEntityType } from '..'
+import type { PassioAlternative } from './PassioAlternative'
+import type { PassioFoodItem } from './PassioFoodItem'
+import type { PassioRecipe } from './PassioRecipe'
 
 /**
  * Information associated with an item in the nutritional database.

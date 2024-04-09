@@ -1,14 +1,10 @@
 import type {
-  UPCProduct,
   ConfigurationOptions,
   FoodDetectionEvent,
   PassioID,
-  PassioIDAttributes,
-  PassioIDEntityType,
   Barcode,
   PassioStatus,
   FoodDetectionConfig,
-  FoodSearchResult,
   PackagedFoodCode,
   CompletedDownloadingFile,
   DownloadModelCallBack,
@@ -16,6 +12,8 @@ import type {
   FoodCandidates,
   PersonalizedAlternative,
   PassioNutrient,
+  FoodSearchResult,
+  UnitMass,
 } from '../models'
 import type {
   Callback,
@@ -24,6 +22,13 @@ import type {
 } from './PassioSDKInterface'
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native'
 import { requestAndroidCameraPermission } from './Permissions'
+import type {
+  PassioFoodItem,
+  PassioNutrients,
+  PassioSearchResult,
+  MealTime,
+} from '..'
+import { PassioFoodItemNutrients } from '../models/v3/Nutrients'
 
 const { PassioSDKBridge } = NativeModules
 
@@ -50,7 +55,7 @@ export const PassioSDK: PassioSDKInterface = {
     )
   },
 
-  onDowloadingPassioModelCallBacks({
+  onDownloadingPassioModelCallBacks({
     completedDownloadingFile,
     downloadingError,
   }: DownloadModelCallBack): Callback {
@@ -118,28 +123,67 @@ export const PassioSDK: PassioSDKInterface = {
 
   async getAttributesForPassioID(
     passioID: PassioID
-  ): Promise<PassioIDAttributes | null> {
+  ): Promise<PassioFoodItem | null> {
     return PassioSDKBridge.getAttributesForPassioID(passioID)
   },
 
   async fetchAttributesForBarcode(
     barcode: Barcode
-  ): Promise<PassioIDAttributes | null> {
+  ): Promise<PassioFoodItem | null> {
     return PassioSDKBridge.fetchAttributesForBarcode(barcode)
   },
 
   async fetchPassioIDAttributesForPackagedFood(
     packagedFoodCode: PackagedFoodCode
-  ): Promise<PassioIDAttributes | null> {
+  ): Promise<PassioFoodItem | null> {
     return PassioSDKBridge.fetchPassioIDAttributesForPackagedFood(
       packagedFoodCode
     )
   },
 
-  async searchForFood(searchQuery: string): Promise<FoodSearchResult[]> {
+  async searchForFood(searchQuery: string): Promise<PassioSearchResult | null> {
     return PassioSDKBridge.searchForFood(searchQuery)
   },
 
+  async fetchSuggestions(
+    mealTime: MealTime
+  ): Promise<FoodSearchResult[] | null> {
+    return PassioSDKBridge.fetchSuggestions(mealTime)
+  },
+
+  async fetchFoodItemForSuggestion(
+    queryResult: FoodSearchResult
+  ): Promise<PassioFoodItem | null> {
+    if (Platform.OS === 'android') {
+      return PassioSDKBridge.fetchFoodItemForSuggestion(queryResult)
+    } else {
+      return PassioSDKBridge.fetchFoodItemForSuggestion(
+        JSON.stringify(queryResult)
+      )
+    }
+  },
+
+  fetchNutrientsForPassioFoodItem(
+    passioFoodItem: PassioFoodItem,
+    weight: UnitMass
+  ): PassioNutrients {
+    return new PassioFoodItemNutrients(passioFoodItem).nutrients(weight)
+  },
+
+  fetchNutrientsSelectedSizeForPassioFoodItem(
+    passioFoodItem: PassioFoodItem
+  ): PassioNutrients {
+    return new PassioFoodItemNutrients(passioFoodItem).nutrientsSelectedSize()
+  },
+
+  fetchNutrientsReferenceForPassioFoodItem(
+    passioFoodItem: PassioFoodItem
+  ): PassioNutrients {
+    return new PassioFoodItemNutrients(passioFoodItem).nutrientsReference()
+  },
+
+  /*
+  Deprecated
   async convertUPCProductToAttributes(
     product: UPCProduct,
     entityType: PassioIDEntityType
@@ -151,6 +195,7 @@ export const PassioSDK: PassioSDKInterface = {
       return Promise.reject(err)
     }
   },
+  */
 
   async detectFoodFromImageURI(
     imageUri: string
@@ -190,6 +235,16 @@ export const PassioSDK: PassioSDKInterface = {
     passioID: string
   ): Promise<PassioNutrient[] | null> {
     return PassioSDKBridge.fetchNutrientsFor(passioID)
+  },
+
+  async fetchSearchResult(
+    queryResult: FoodSearchResult
+  ): Promise<PassioFoodItem | null> {
+    if (Platform.OS === 'android') {
+      return PassioSDKBridge.fetchSearchResult(queryResult)
+    } else {
+      return PassioSDKBridge.fetchSearchResult(JSON.stringify(queryResult))
+    }
   },
 }
 
