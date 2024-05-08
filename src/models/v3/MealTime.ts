@@ -1,1 +1,1 @@
-export type MealTime = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+export type PassioMealTime = 'breakfast' | 'lunch' | 'dinner' | 'snack'

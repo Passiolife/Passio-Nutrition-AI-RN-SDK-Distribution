@@ -213,7 +213,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
     implementation project(':reactnativepassiosdk')
-    implementation files("$rootDir/../node_modules/@passiolife/nutritionai-react-native-sdk-v2/android/libs/passiolib-release.aar")
+    implementation files("$rootDir/../node_modules/@passiolife/nutritionai-react-native-sdk-v3/android/libs/passiolib-release.aar")
     // TensorFlow
     implementation 'org.tensorflow:tensorflow-lite:2.8.0'
 

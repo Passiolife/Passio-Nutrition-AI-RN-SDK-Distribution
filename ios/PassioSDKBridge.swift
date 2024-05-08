@@ -109,8 +109,8 @@ class PassioSDKBridge: RCTEventEmitter {
         sdk.stopFoodDetection()
     }
     
-    @objc(getAttributesForPassioID:withResolver:withRejecter:)
-    func getAttributesForPassioID(passioID: String,
+    @objc(fetchFoodItemForPassioID:withResolver:withRejecter:)
+    func fetchFoodItemForPassioID(passioID: String,
                                   resolve: @escaping RCTPromiseResolveBlock,
                                   reject: @escaping RCTPromiseRejectBlock) {
         
@@ -124,13 +124,12 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
-
-    @objc(fetchAttributesForBarcode:withResolver:withRejecter:)
-    func fetchAttributesForBarcode(barcode: String,
-                                   resolve: @escaping RCTPromiseResolveBlock,
-                                   reject: @escaping RCTPromiseRejectBlock) {
+    @objc(fetchFoodItemForRefCode:withResolver:withRejecter:)
+    func fetchFoodItemForRefCode(refCode: String,
+                                  resolve: @escaping RCTPromiseResolveBlock,
+                                  reject: @escaping RCTPromiseRejectBlock) {
         
-        sdk.fetchFoodItemFor(productCode: barcode) { attributes in
+        sdk.fetchFoodItemFor(refCode: refCode) {attributes in
             if let attributes = attributes {
                 let bridged = bridgePassioFoodItem(attributes)
                 resolve(bridged)
@@ -139,13 +138,14 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
     }
+ 
     
-    @objc(fetchPassioIDAttributesForPackagedFood:withResolver:withRejecter:)
-    func fetchPassioIDAttributesForPackagedFood(packagedFoodCode: String,
+    @objc(fetchFoodItemForProductCode:withResolver:withRejecter:)
+    func fetchFoodItemForProductCode(code: String,
                                    resolve: @escaping RCTPromiseResolveBlock,
                                    reject: @escaping RCTPromiseRejectBlock) {
         
-        sdk.fetchFoodItemFor(productCode: packagedFoodCode) { attributes in
+        sdk.fetchFoodItemFor(productCode: code) { attributes in
             if let attributes = attributes {
                 let bridged = bridgePassioFoodItem(attributes)
                 resolve(bridged)
@@ -175,15 +175,14 @@ class PassioSDKBridge: RCTEventEmitter {
     
     
     
-    @objc(fetchSearchResult:withResolver:withRejecter:)
-    func fetchSearchResult(searchResult: String,
+    @objc(fetchFoodItemForDataInfo:withResolver:withRejecter:)
+    func fetchFoodItemForDataInfo(searchResult: String,
                        resolve: @escaping RCTPromiseResolveBlock,
                        reject: @escaping RCTPromiseRejectBlock) {
         
-        var requestBody = preparePassioSearchResult(searchResult)
-        
+        var requestBody = preparePassioFoodDataInfo(searchResult)
         if let requestBody = requestBody {
-            sdk.fetchSearchResult(searchResult: requestBody) { data in
+            sdk.fetchFoodItemFor(foodItem: requestBody) { data in
                 if let data = data {
                     resolve(bridgePassioFoodItem(data))
                 } else {
@@ -201,12 +200,12 @@ class PassioSDKBridge: RCTEventEmitter {
                        resolve: @escaping RCTPromiseResolveBlock,
                        reject: @escaping RCTPromiseRejectBlock) {
         
-        let mealTime = MealTime(rawValue: searchQuery) ?? MealTime.breakfast
+        let mealTime = PassioMealTime(rawValue: searchQuery) ?? PassioMealTime.breakfast
         
         sdk.fetchSuggestions(mealTime: mealTime) { (response: [Any]) in
             
-            if let searchResult = response as? [PassioSearchResult] {
-                resolve(searchResult.map(bridgePassioSearchResult))
+            if let searchResult = response as? [PassioFoodDataInfo] {
+                resolve(searchResult.map(bridgePassioFoodDataInfo))
             } else {
                 resolve(NSNull())
             }
@@ -215,27 +214,6 @@ class PassioSDKBridge: RCTEventEmitter {
     }
     
     
-    
-    @objc(fetchFoodItemForSuggestion:withResolver:withRejecter:)
-    func fetchFoodItemForSuggestion(searchResult: String,
-                       resolve: @escaping RCTPromiseResolveBlock,
-                       reject: @escaping RCTPromiseRejectBlock) {
-        
-        var requestBody = preparePassioSearchResult(searchResult)
-        
-        if let requestBody = requestBody {
-            sdk.fetchFoodItemForSuggestion(suggestion: requestBody) { data in
-                if let data = data {
-                    resolve(bridgePassioFoodItem(data))
-                } else {
-                    resolve(NSNull())
-                }
-            }
-        } else {
-            resolve(NSNull())
-        }
-        
-    }
     
     @objc
     override class func requiresMainQueueSetup() -> Bool {
@@ -247,37 +225,6 @@ class PassioSDKBridge: RCTEventEmitter {
         return [foodDetectionEventName, completedDownloadingFileEventName, downloadingErrorEventName]
     }
 
-    @objc(convertUPCProductToAttributes:entityType:withResolver:withRejecter:)
-    func convertUPCProductToAttributes(json: String,
-                                       type: String,
-                                       resolve: @escaping RCTPromiseResolveBlock,
-                                       reject: @escaping RCTPromiseRejectBlock) {
-        
-        guard let data = json.data(using: .utf8),
-              let upcProduct = try? JSONDecoder().decode(UPCProduct.self, from: data),
-              let entityType = PassioIDEntityType(rawValue: type) else {
-            
-            return resolve(NSNull())
-        }
-        
-        do {
-            let foodItem = try PassioFoodItemData(upcProduct: upcProduct)
-            
-            let attributes = PassioIDAttributes(
-                passioID: foodItem.passioID,
-                name: foodItem.name,
-                foodItemDataForDefault: foodItem,
-                entityType: entityType
-            )
-            
-            let bridged = bridgePassioIDAttributes(attributes)
-            resolve(bridged)
-        } catch let error {
-            reject("PASSIO-SDK", "convertUPCProductToAttributes failed", error)
-        }
-        
-        
-    }
     
     @objc(detectFoodFromImageURI:withResolver:withRejecter:)
     func detectFoodFromImageURI(imageUri: String,
@@ -305,16 +252,24 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
-    @objc(addToPersonalization:)
-    func addToPersonalization(personalizedAlternativeJSON: String) -> Bool {
-        guard let data = personalizedAlternativeJSON.data(using: .utf8),
-              let personalizedAlternative = try? JSONDecoder().decode(PersonalizedAlternative.self, from: data) else {
+    @objc(addToPersonalization:visualCadidate:)
+    func addToPersonalization(visualCadidate: String, alternative: String) -> Bool {
+        guard
+            let visualCadidateData = visualCadidate.data(using: .utf8),
+            let visualCadidateJSON = try? JSONSerialization.jsonObject(with: visualCadidateData) as? [String: Any],
+            let alternativeData = alternative.data(using: .utf8),
+            let alternativeJSON = try? JSONSerialization.jsonObject(with: alternativeData) as? [String: Any],
+            let visualCadidateImp = DetectedCandidateImp(dict: visualCadidateJSON),
+            let alternativeImp = DetectedCandidateImp(dict: alternativeJSON)
+        else {
             return false
         }
-        sdk.addToPersonalization(personalizedAlternative: personalizedAlternative)
+        
+        sdk.addToPersonalization(visualCadidate: visualCadidateImp, alternative: alternativeImp)
         return true
     }
-
+    
+    
     @objc(fetchTagsFor:withResolver:withRejecter:)
     func fetchTagsFor(passioID: String,
                                        resolve: @escaping RCTPromiseResolveBlock,
@@ -339,6 +294,37 @@ class PassioSDKBridge: RCTEventEmitter {
                 resolve(nutrients.map(bridgePassioNutrient))
             } else {
                 reject("PASSIO-SDK", "no nutrients", nil)
+            }
+           
+        }
+    }
+    
+    @objc(fetchMealPlans:withRejecter:)
+    func fetchMealPlans(
+                       resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+        
+        sdk.fetchMealPlans() {  (results: [Any]) in
+            if let mealPlans = results as? [PassioMealPlan]  {
+                return resolve(mealPlans.map(bridgePassioMealPlan))
+            } else {
+                return resolve(NSNull())
+            }
+           
+        }
+    }
+    
+    @objc(fetchMealPlanForDay:day:withResolver:withRejecter:)
+    func fetchMealPlanForDay(mealPlanLabel:String,
+                             day:Int,
+                             resolve: @escaping RCTPromiseResolveBlock,
+                             reject: @escaping RCTPromiseRejectBlock) {
+        
+        sdk.fetchMealPlanForDay(mealPlanLabel: mealPlanLabel, day: day) {  (results: [Any]) in
+            if let mealPlans = results as? [PassioMealPlanItem]  {
+                return resolve(mealPlans.map(bridgePassioMealPlanItem))
+            } else {
+                return resolve(NSNull())
             }
            
         }
@@ -506,20 +492,7 @@ private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] 
     return body
 }
 
-private func bridgePassioIDAttributes(_ val: PassioIDAttributes) -> [String: Any] {
-    var body: [String: Any] = [
-        "passioID": val.passioID,
-        "name": val.name,
-        "entityType": val.entityType.rawValue,
-        "parents": val.parents?.map(bridgePassioAlternative) ?? [],
-        "children": val.children?.map(bridgePassioAlternative) ?? [],
-        "siblings": val.siblings?.map(bridgePassioAlternative) ?? []
-    ]
-    body.addIfPresent(key: "foodItem", value: val.passioFoodItemData.map(bridgeFoodItem))
-    body.addIfPresent(key: "recipe", value: val.recipe.map(bridgeRecipe))
-    body.addIfPresent(key: "isOpenFood", value: val.isOpenFood)
-    return body
-}
+
 
 private func bridgePassioAlternative(_ val: PassioAlternative) -> [String: Any] {
     var body: [String: Any] = [
@@ -555,56 +528,6 @@ private func bridgeStringArray(_ val: String) -> String {
     return val
 }
 
-
-
-private func bridgeFoodItem(_ val: PassioFoodItemData) -> [String: Any] {
-    var body: [String: Any] = [
-        "passioID": val.passioID,
-        "name": val.name,
-        "selectedQuantity": val.selectedQuantity,
-        "selectedUnit": val.selectedUnit,
-        "entityType": val.entityType.rawValue,
-        "servingUnits": val.servingUnits.map(bridgeServingUnit),
-        "servingSizes": val.servingSizes.map(bridgeServingSize),
-        "computedWeight": bridgeMeasurement(val.computedWeight)
-    ]
-    body.addIfPresent(key: "parents", value: val.parents?.map(bridgePassioAlternative))
-    body.addIfPresent(key: "children", value: val.children?.map(bridgePassioAlternative))
-    body.addIfPresent(key: "siblings", value: val.siblings?.map(bridgePassioAlternative))
-    body.addIfPresent(key: "calories", value: bridgeUnitEnergy(val.totalCalories))
-    body.addIfPresent(key: "carbs", value: bridgeUnitMass(val.totalCarbs))
-    body.addIfPresent(key: "fat", value: bridgeUnitMass(val.totalFat))
-    body.addIfPresent(key: "protein", value: bridgeUnitMass(val.totalProteins))
-    body.addIfPresent(key: "saturatedFat", value: bridgeUnitMass(val.totalSaturatedFat))
-    body.addIfPresent(key: "transFat", value: bridgeUnitMass(val.totalTransFat))
-    body.addIfPresent(key: "monounsaturatedFat", value: bridgeUnitMass(val.totalMonounsaturatedFat))
-    body.addIfPresent(key: "polyunsaturatedFat", value: bridgeUnitMass(val.totalPolyunsaturatedFat))
-    body.addIfPresent(key: "cholesterol", value: bridgeUnitMass(val.totalCholesterol))
-    body.addIfPresent(key: "sodium", value: bridgeUnitMass(val.totalSodium))
-    body.addIfPresent(key: "fiber", value: bridgeUnitMass(val.totalFibers))
-    body.addIfPresent(key: "sugar", value: bridgeUnitMass(val.totalSugars))
-    body.addIfPresent(key: "sugarAdded", value: bridgeUnitMass(val.totalSugarsAdded))
-    body.addIfPresent(key: "vitaminD", value: bridgeUnitMass(val.totalVitaminD))
-    body.addIfPresent(key: "calcium", value: bridgeUnitMass(val.totalCalcium))
-    body.addIfPresent(key: "iron", value: bridgeUnitMass(val.totalIron))
-    body.addIfPresent(key: "potassium", value: bridgeUnitMass(val.totalPotassium))
-    body.addIfPresent(key: "vitaminC", value: bridgeUnitMass(val.totalVitaminC))
-    body.addIfPresent(key: "alcohol", value: bridgeUnitMass(val.totalAlcohol))
-    body.addIfPresent(key: "sugarAlcohol", value: bridgeUnitMass(val.totalSugarAlcohol))
-    body.addIfPresent(key: "vitaminB12", value: bridgeUnitMass(val.totalVitaminB12))
-    body.addIfPresent(key: "vitaminB12Added", value: bridgeUnitMass(val.totalVitaminB12Added))
-    body.addIfPresent(key: "vitaminB6", value: bridgeUnitMass(val.totalVitaminB6))
-    body.addIfPresent(key: "vitaminE", value: bridgeUnitMass(val.totalVitaminE))
-    body.addIfPresent(key: "vitaminEAdded", value: bridgeUnitMass(val.totalVitaminEAdded))
-    body.addIfPresent(key: "magnesium", value: bridgeUnitMass(val.totalMagnesium))
-    body.addIfPresent(key: "phosphorus", value: bridgeUnitMass(val.totalVitaminEAdded))
-    body.addIfPresent(key: "iodine", value: bridgeUnitMass(val.totalIodine))
-    body.addIfPresent(key: "vitaminA", value: bridgeMeasurementIU(val.totalVitaminA))
-    body.addIfPresent(key: "ingredientsDescription", value: val.ingredientsDescription)
-    body.addIfPresent(key: "barcode", value: val.barcode)
-    body.addIfPresent(key: "tags", value: val.tags)
-    return body
-}
 
 private func bridgeServingUnit(_ val: PassioServingUnit) -> [String: Any] {
     [
@@ -668,18 +591,6 @@ private func bridgeMeasurement<UnitType: UnitMass>(_ val: Measurement<UnitType>)
     ]
 }
 
-private func bridgeRecipe(_ val: PassioFoodRecipe) -> [String: Any] {
-    [
-        "passioID": val.passioID,
-        "name": val.name,
-        "servingSizes": val.servingSizes.map(bridgeServingSize),
-        "servingUnits": val.servingUnits.map(bridgeServingUnit),
-        "selectedUnit": val.selectedUnit,
-        "selectedQuantity": val.selectedQuantity,
-        "foodItems": val.foodItems.map(bridgeFoodItem)
-    ]
-}
-
 
 private func bridgeAmountEstimate(_ val: AmountEstimate) -> [String: Any] {
     var body: [String: Any] = [:]
@@ -712,6 +623,31 @@ private func bridgeUIImage(_ val: UIImage?) -> [String: Any]? {
   
 }
 
+private func bridgePassioMealPlan(_ val: PassioMealPlan) -> [String: Any] {
+    var body: [String: Any] = [:]
+    body.addIfPresent(key: "carbsTarget", value: val.carbsTarget)
+    body.addIfPresent(key: "fatTarget", value: val.fatTarget)
+    body.addIfPresent(key: "mealPlanLabel", value: val.mealPlanLabel)
+    body.addIfPresent(key: "mealPlanTitle", value: val.mealPlanTitle)
+    body.addIfPresent(key: "proteinTarget", value: val.proteinTarget)
+    return body
+}
+
+private func bridgePassioMealPlanItem(_ val: PassioMealPlanItem) -> [String: Any] {
+    var body: [String: Any] = [:]
+    
+    body.addIfPresent(key: "dayNumber", value: val.dayNumber)
+    body.addIfPresent(key: "dayTitle", value: val.dayTitle)
+    body.addIfPresent(key: "mealTime", value: val.mealTime?.rawValue)
+     if let mealSearchResult = val.meal {
+        body.addIfPresent(key: "meal", value:bridgePassioFoodDataInfo(mealSearchResult))
+    }
+   
+    
+    return body
+}
+
+
 fileprivate extension Dictionary {
     
     mutating func addIfPresent(key: Key, value: Value?) {
@@ -734,15 +670,13 @@ private func bridgePassioFoodItem(_ val: PassioFoodItem) -> [String: Any?] {
     body["iconId"] = val.iconId
     body["amount"] = bridgePassioFoodAmount(val.amount)
     body["ingredients"] = val.ingredients.map { bridgePassioIngredient($0) }
-    body["nutrients"] = bridgePassioNutrients(val.nutrients(weight: val.amount.weight()))
-    body["nutrientsReference"] = bridgePassioNutrients(val.nutrientsReference())
-    body["nutrientsSelectedSize"] = bridgePassioNutrients(val.nutrientsSelectedSize())
     body["weight"] = bridgeUnitMass(val.weight())
-    
     // Not include in android
     body["licenseCopy"] = val.licenseCopy
     body["scannedId"] = val.scannedId
+    body["refCode"] = val.refCode
     body["isOpenFood"] = isOpenFood(val)
+    body["openFoodLicense"] = openFoodLicense(val)
 
     return body
 }
@@ -769,9 +703,9 @@ private func bridgePassioIngredient(_ val: PassioIngredient) -> [String: Any?] {
     body["name"] = val.name
     body["id"] = val.id
     body["iconId"] = val.iconId
+    body["refCode"] = val.refCode
     body["weight"] = bridgeUnitMass(val.weight())
     body["referenceNutrients"] = bridgePassioNutrients(val.referenceNutrients)
-    body["nutrients"] = bridgePassioNutrients(val.nutrients(weight: val.weight()))
     body["metadata"] = bridgePassioFoodMetadata(val.metadata)
     body["amount"] = bridgePassioFoodAmount(val.amount)
     return body
@@ -845,7 +779,7 @@ private func  bridgePassioNutrients(_ val: PassioNutrients) -> [String: Any?] {
 
 
 
-private func   bridgePassioSearchResult(_ val: PassioSearchResult) -> [String: Any?] {
+private func   bridgePassioFoodDataInfo(_ val: PassioFoodDataInfo) -> [String: Any?] {
     var body = [String: Any?]()
     
     body.addIfPresent(key:"brandName", value:  val.brandName)
@@ -857,6 +791,7 @@ private func   bridgePassioSearchResult(_ val: PassioSearchResult) -> [String: A
     body.addIfPresent(key:"score", value:  val.score)
     body.addIfPresent(key:"scoredName", value:  val.scoredName)
     body.addIfPresent(key:"type", value:  val.type)
+    body.addIfPresent(key:"useShortName", value:  val.isShortName)
     
     //Not include in android
     // Not include in IOS
@@ -873,17 +808,18 @@ private func bridgePassioSearchNutritionPreview(_ preview: PassioSearchNutrition
     nutritionPreviewMap["calories"] = preview.calories
     nutritionPreviewMap["carbs"] = preview.carbs
     nutritionPreviewMap["protein"] = preview.protein
-    nutritionPreviewMap["name"] = preview.name
-    nutritionPreviewMap["servingUnit"] = preview
+    nutritionPreviewMap["fat"] = preview.fat
     nutritionPreviewMap["servingQuantity"] = preview.servingQuantity
-    nutritionPreviewMap["servingWeight"] = preview.servingWeight
+    nutritionPreviewMap["servingUnit"] = preview.servingUnit
+    nutritionPreviewMap["weightUnit"] = preview.weightUnit
+    nutritionPreviewMap["weightQuantity"] = preview.weightQuantity
     return nutritionPreviewMap
 }
 
 private func bridgeSearchResponse(_ val: SearchResponse) -> [String: Any?] {
     var body = [String: Any?]()
     
-    body.addIfPresent(key: "results", value: val.results.map(bridgePassioSearchResult))
+    body.addIfPresent(key: "results", value: val.results.map(bridgePassioFoodDataInfo))
     body["alternatives"] = val.alternateNames.map(bridgeStringArray)
     return body
 }
@@ -898,15 +834,21 @@ private func isOpenFood(_ foodItem: PassioFoodItem) -> Bool {
     return false
 }
 
+private func openFoodLicense(_ foodItem: PassioFoodItem) -> String {
+    return foodItem.licenseCopy
+}
 
-private func preparePassioSearchResult(_ json: String) -> PassioSearchResult? {
+
+
+
+private func preparePassioSearchNutritionPreview(_ json: String) -> PassioSearchNutritionPreview? {
     
    
     do{
         if let json = json.data(using: String.Encoding.utf8){
             if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
                
-               return PassioSearchResult(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil)
+                return PassioSearchNutritionPreview(calories: jsonData["calories"] as! Int, carbs: jsonData["carbs"] as! Double, fat: jsonData["fat"] as! Double, protein: jsonData["protein"] as! Double, servingUnit: jsonData["servingUnit"] as! String, servingQuantity: jsonData["servingQuantity"] as! Double, weightUnit: jsonData["weightUnit"] as! String, weightQuantity: jsonData["weightQuantity"] as! Double)
                 
             }else{
                 return nil
@@ -921,3 +863,70 @@ private func preparePassioSearchResult(_ json: String) -> PassioSearchResult? {
     
    
 }
+
+private func preparePassioFoodDataInfo(_ json: String) -> PassioFoodDataInfo? {
+    
+   
+    do{
+        if let json = json.data(using: String.Encoding.utf8){
+            if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
+              
+                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["useShortName"] as? Bool) ?? true)
+                
+            }else{
+                return nil
+            }
+        }else{
+            return nil
+        }
+    }catch {
+       return nil
+
+    }
+    
+   
+}
+
+
+// ------------------------------------------------------------- Equatable ------------------------------------------------------------
+
+
+struct DetectedCandidateImp: DetectedCandidate, Equatable {
+    
+
+    static func == (lhs: DetectedCandidateImp,
+                    rhs: DetectedCandidateImp) -> Bool {
+        lhs.passioID == rhs.passioID &&
+        lhs.boundingBox == rhs.boundingBox &&
+        lhs.confidence == rhs.confidence &&
+        lhs.croppedImage == rhs.croppedImage
+    }
+    public var name: String
+    public var passioID: PassioID
+    public var confidence: Double
+    public var boundingBox: CGRect
+    public var croppedImage: UIImage?
+    public var amountEstimate: AmountEstimate?
+    public var alternatives: [DetectedCandidate]
+    public var mappingID: PassioID
+
+ 
+    init?(dict: [String: Any]?) {
+        guard let dict = dict else { return nil }
+        self.name = (dict["name"] as? String) ?? ""
+        self.passioID = (dict["passioID"] as? String) ?? ""
+        self.confidence = (dict["confidence"] as? Double) ?? 0
+        self.mappingID = (dict["mappingID"] as? String) ?? ""
+        
+        if let _alternatives = dict["alternatives"] as? [[String:Any]]{
+            self.alternatives = _alternatives.map({DetectedCandidateImp(dict: $0)!})
+        }else {
+            self.alternatives = []
+        }
+        self.boundingBox = CGRect.zero
+        self.amountEstimate = nil
+        self.croppedImage = nil
+    }
+
+}
+

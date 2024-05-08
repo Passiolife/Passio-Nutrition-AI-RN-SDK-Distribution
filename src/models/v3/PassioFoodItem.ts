@@ -2,10 +2,11 @@ import type { PassioID } from '../PassioID'
 import type { UnitMass } from '..'
 import type { PassioFoodAmount } from './PassioFoodAmount'
 import type { PassioIngredient } from './PassioIngredient'
+import type { RefCode } from '../RefCode'
 
 export interface PassioFoodItem {
-  // Unique identifier for the food item
-  id: PassioID
+  // Reference code of Passio food item
+  refCode?: RefCode
 
   // Name of the food item
   name: string
@@ -29,4 +30,12 @@ export interface PassioFoodItem {
    * food item credits to openfood.org when the data is coming from them
    */
   isOpenFood?: boolean
+
+  /**
+   * food item credits to openfood.org when the data is coming from them
+   * Show food license name
+   */
+  openFoodLicense?: string
+
+  id: string
 }

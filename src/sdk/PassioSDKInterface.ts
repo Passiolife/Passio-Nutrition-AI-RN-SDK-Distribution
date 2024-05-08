@@ -2,7 +2,9 @@ import type {
   PassioFoodItem,
   PassioNutrients,
   PassioSearchResult,
-  MealTime,
+  PassioMealTime,
+  PassioMealPlan,
+  PassioMealPlanItem,
 } from '..'
 import type {
   Barcode,
@@ -11,13 +13,14 @@ import type {
   FoodCandidates,
   FoodDetectionConfig,
   FoodDetectionEvent,
-  FoodSearchResult,
+  PassioFoodDataInfo,
   PackagedFoodCode,
   PassioID,
   PassioNutrient,
   PassioStatus,
-  PersonalizedAlternative,
   UnitMass,
+  RefCode,
+  DetectedCandidate,
 } from '../models'
 
 export interface PassioSDKInterface {
@@ -48,26 +51,28 @@ export interface PassioSDKInterface {
   ): Subscription
 
   /**
-   * Look up the nutrition attributes for a given Passio ID.
-   * @param passioID - The Passio ID for the attributes query.
+   * Look up the food item result for a given Passio ID.
+   * @param passioID - The Passio ID for the  query.
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
    */
-  getAttributesForPassioID(passioID: PassioID): Promise<PassioFoodItem | null>
+  fetchFoodItemForPassioID(passioID: PassioID): Promise<PassioFoodItem | null>
 
   /**
-   * Query Passio's UPC web service for nutrition attributes of a given barcode.
-   * @param barcode - The barcode value for the attributes query, typically taken from a scanned `BarcodeCandidate`.
+   * Look up the food item result for a given refCode.
+   * @param refCode - The refCode for the  query.
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
    */
-  fetchAttributesForBarcode(barcode: Barcode): Promise<PassioFoodItem | null>
+  fetchFoodItemForRefCode(refCode: RefCode): Promise<PassioFoodItem | null>
 
   /**
-   * Query Passio's web service for nutrition attributes given an package food identifier.
-   * @param packagedFoodCode - The code identifier for the attributes query, taken from the list of package food candidates on a `FoodDetectionEvent`.
+   * Look up the food item result for a given by barcode or packagedFoodCode.
+   * @param barcode  - barcode for the  query.
+   * or
+   * @param packageFoodCode  - packageFoodCode for the query.
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
    */
-  fetchPassioIDAttributesForPackagedFood(
-    packagedFoodCode: PackagedFoodCode
+  fetchFoodItemForProductCode(
+    code: Barcode | PackagedFoodCode
   ): Promise<PassioFoodItem | null>
 
   /**
@@ -78,17 +83,19 @@ export interface PassioSDKInterface {
   searchForFood(searchQuery: string): Promise<PassioSearchResult | null>
 
   /**
-   * Detail of search food with a given search result.
-   * @param result - Provide `PassioSearchResult` object get `PassioFoodItem` detail.
+   * Data info of the search food with a given search result.
+   * @param passioFoodDataInfo - Provide `PassioFoodDataInfo` object get `PassioFoodItem` detail.
    * @returns A `Promise` resolving to `PassioFoodItem` detail.
    */
-  fetchSearchResult(result: FoodSearchResult): Promise<PassioFoodItem | null>
+  fetchFoodItemForDataInfo(
+    passioFoodDataInfo: PassioFoodDataInfo
+  ): Promise<PassioFoodItem | null>
 
   /**
    * This method indicating downloading file status if model download from passio server.
-   * @param callback - A callback to receive for dowloading file lefts from queue.
-   * @param callback - A callback to receive dowload file failed for some reason.
-   * @returns A `Callback` that should be retained by the caller while dowloading is running. Call `remove` on the callback to terminate listeners and relase from memory.
+   * @param callback - A callback to receive for downloading file lefts from queue.
+   * @param callback - A callback to receive download file failed for some reason.
+   * @returns A `Callback` that should be retained by the caller while downloading is running. Call `remove` on the callback to terminate listeners and relase from memory.
    */
   onDownloadingPassioModelCallBacks: (
     downloadModelCallBack: DownloadModelCallBack
@@ -108,7 +115,8 @@ export interface PassioSDKInterface {
    * @returns A `boolean` value indicating if the personalized alternative was added successfully.
    */
   addToPersonalization(
-    personalizedAlternative: PersonalizedAlternative
+    visualCandidate: DetectedCandidate,
+    alternative: DetectedCandidate
   ): boolean
 
   /**
@@ -126,50 +134,60 @@ export interface PassioSDKInterface {
   fetchNutrientsFor(passioID: PassioID): Promise<PassioNutrient[] | null>
 
   /**
-   * fetch a map of nutrients for passio Food Item with calculated weight
+   * It retrieves all the nutrients by summing the reference nutrients of ingredients with the help of selectedUnit and selectedQuantity
    * @param passioFoodItem - The passioFoodItem for the attributes query.
    * @param weight - The weight for the query.
-   * @returns A `Promise` resolving to a `PassioNutrient` object if the record exists in the database or `null` if not.
+   * @returns "PassioNutrients" encompass all the nutrients found in a food item.
    */
-  fetchNutrientsForPassioFoodItem(
+  getNutrientsOfPassioFoodItem(
     passioFoodItem: PassioFoodItem,
     weight: UnitMass
   ): PassioNutrients
 
   /**
-   * fetch a map of nutrients for passio Food Item with default selected size
+   * It retrieves all the nutrients by summing the reference nutrients of ingredients with the help of default selectedUnit and selectedQuantity
    * @param passioFoodItem - The passioFoodItem for the attributes query.
-   * @returns A `Promise` resolving to a `PassioNutrient` object if the record exists in the database or `null` if not.
+   * @returns "PassioNutrients" encompass all the nutrients found in a food item.
    */
 
-  fetchNutrientsSelectedSizeForPassioFoodItem(
+  getNutrientsSelectedSizeOfPassioFoodItem(
     passioFoodItem: PassioFoodItem
   ): PassioNutrients
 
   /**
-   * fetch a map of nutrients for passio Food Item with reference weight Unit("gram",100)
+   * It retrieves all the nutrients by summing the reference nutrients of ingredients with the help of 100 gram sering unit and quantity
    * @param passioFoodItem - The passioFoodItem for the attributes query.
-   * @returns A `Promise` resolving to a `PassioNutrient` object if the record exists in the database or `null` if not.
+   * @returns "PassioNutrients" encompass all the nutrients found in a food item.
    */
-  fetchNutrientsReferenceForPassioFoodItem(
+  getNutrientsReferenceOfPassioFoodItem(
     passioFoodItem: PassioFoodItem
   ): PassioNutrients
 
   /**
    * fetch a suggestions for particular meal time  'breakfast' | 'lunch' | 'dinner' | 'snack' and returning results.
    * @param mealTime - 'breakfast' | 'lunch' | 'dinner' | 'snack',
-   * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
+   * @returns A `Promise` resolving to a `PassioFoodDataInfo` array if the record exists in the database or `null` if not.
    */
-  fetchSuggestions(mealTime: MealTime): Promise<FoodSearchResult[] | null>
+  fetchSuggestions(
+    mealTime: PassioMealTime
+  ): Promise<PassioFoodDataInfo[] | null>
 
   /**
-   * Detail of search food with a given search result.
-   * @param result - Provide `PassioSearchResult` object get `PassioFoodItem` detail.
-   * @returns A `Promise` resolving to `PassioFoodItem` detail.
+   * fetch list of all meal Plans
+   * @returns A `Promise` resolving to a `PassioMealPlan` array if the record exists in the database or `null` if not.
    */
-  fetchFoodItemForSuggestion(
-    result: FoodSearchResult
-  ): Promise<PassioFoodItem | null>
+  fetchMealPlans(): Promise<PassioMealPlan[] | null>
+
+  /**
+   * fetch list of all meal Plan item
+   * @param mealPlanLabel - query for type of mealPlan.
+   * @param day - for which day meal plan is needed
+   * @returns A `Promise` resolving to a `PassioMealPlanItem` array if the record exists in the database or `null` if not.
+   */
+  fetchMealPlanForDay(
+    mealPlanLabel: string,
+    day: number
+  ): Promise<PassioMealPlanItem[] | null>
 }
 
 /**

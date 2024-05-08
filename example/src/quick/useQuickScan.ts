@@ -6,7 +6,7 @@ import {
   type FoodDetectionEvent,
   PassioFoodItem,
   DetectedCandidate,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 /**
  * Custom hook for handling quick food scanning using PassioSDK.
@@ -58,15 +58,15 @@ export const useQuickScan = () => {
       // Determine the type of food detection and fetch attributes accordingly
       if (candidates.barcodeCandidates?.[0]) {
         const barcode = candidates.barcodeCandidates[0].barcode
-        attributes = await PassioSDK.fetchAttributesForBarcode(barcode)
+        attributes = await PassioSDK.fetchFoodItemForProductCode(barcode)
       } else if (candidates.packagedFoodCode?.[0]) {
         const packagedFoodCode = candidates.packagedFoodCode[0]
-        attributes = await PassioSDK.fetchPassioIDAttributesForPackagedFood(
+        attributes = await PassioSDK.fetchFoodItemForProductCode(
           packagedFoodCode
         )
       } else if (candidates.detectedCandidates?.[0]) {
         const passioID = candidates.detectedCandidates[0].passioID
-        attributes = await PassioSDK.getAttributesForPassioID(passioID)
+        attributes = await PassioSDK.fetchFoodItemForPassioID(passioID)
       }
 
       // If attributes are null, return
@@ -114,7 +114,7 @@ export const useQuickScan = () => {
   // Function to handle changes in alternative food items
   const onAlternativeFoodItemChange = useCallback(
     async (attribute: DetectedCandidate) => {
-      const alternatePassioFoodItem = await PassioSDK.getAttributesForPassioID(
+      const alternatePassioFoodItem = await PassioSDK.fetchFoodItemForPassioID(
         attribute.passioID
       )
       if (alternatePassioFoodItem) {

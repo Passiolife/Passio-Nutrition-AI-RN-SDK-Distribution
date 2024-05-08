@@ -19,32 +19,30 @@ RCT_EXTERN_METHOD(startFoodDetection:(BOOL)detectBarcodes
 
 RCT_EXTERN_METHOD(stopFoodDetection)
 
-RCT_EXTERN_METHOD(getAttributesForPassioID:(NSString *)passioID
+RCT_EXTERN_METHOD(fetchFoodItemForPassioID:(NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(fetchAttributesForBarcode:(NSString *)barcode
+RCT_EXTERN_METHOD(fetchFoodItemForRefCode:(NSString *)refCode
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(fetchPassioIDAttributesForPackagedFood:(NSString *)packagedFoodCode
+RCT_EXTERN_METHOD(fetchFoodItemForProductCode:(NSString *)code
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
+
 
 RCT_EXTERN_METHOD(searchForFood:(NSString *)searchQuery
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(convertUPCProductToAttributes: (NSString *)upcJSON
-                  entityType: (NSString *)entityType
-                  withResolver:(RCTPromiseResolveBlock)resolve
-                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(detectFoodFromImageURI: (NSString *)imageUri
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(addToPersonalization: (NSString *)personalizedAlternativeJSON)
+RCT_EXTERN_METHOD(addToPersonalization: (NSString *)visualCadidate
+                  (NSString *)alternative)
 
 RCT_EXTERN_METHOD(fetchTagsFor: (NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
@@ -54,7 +52,7 @@ RCT_EXTERN_METHOD(fetchNutrientsFor:(NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(fetchSearchResult:(NSString *)searchResult
+RCT_EXTERN_METHOD(fetchFoodItemForDataInfo:(NSString *)searchResult
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
@@ -62,7 +60,12 @@ RCT_EXTERN_METHOD(fetchSuggestions:(NSString *)searchQuery
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(fetchFoodItemForSuggestion:(NSString *)searchResult
+
+RCT_EXTERN_METHOD(fetchMealPlans:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchMealPlanForDay:(NSString *)mealPlanLabel
+                  day:(NSInteger *)day
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 

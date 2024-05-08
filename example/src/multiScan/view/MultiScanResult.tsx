@@ -5,7 +5,7 @@ import { MultiScanResultItem } from './MultiScanResultItem'
 import type {
   DetectedCandidate,
   PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 
 export interface MultiScanResultProps {

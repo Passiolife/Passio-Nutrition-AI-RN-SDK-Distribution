@@ -6,7 +6,7 @@ import {
   type ServingUnit,
   ingredientWeightInGram,
   selectedServingUnitGram,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 interface Props {
   passioFoodItem: PassioFoodItem
@@ -23,8 +23,25 @@ export interface ComputedWeight {
   qty: string
 }
 
+const modifyPassioFoodItemByCheckSelectedUnitExist = (
+  passioFoodItem: PassioFoodItem
+) => {
+  const updatedFoodItem = passioFoodItem
+  const item = updatedFoodItem.amount.servingUnits?.find(
+    (i) => i.unitName === updatedFoodItem?.amount.selectedUnit
+  )
+  if (item === undefined) {
+    updatedFoodItem.amount.selectedUnit = 'gram'
+    updatedFoodItem.amount.selectedQuantity =
+      updatedFoodItem.amount?.weight.value
+  }
+  return updatedFoodItem
+}
+
 export const useFoodDetail = (prop: Props) => {
-  const [passioFoodItem, setPassioFoodItem] = useState(prop.passioFoodItem)
+  const [passioFoodItem, setPassioFoodItem] = useState(
+    modifyPassioFoodItemByCheckSelectedUnitExist({ ...prop.passioFoodItem })
+  )
 
   const [isAddIngredients, openAddIngredients] = useState<boolean>(false)
 
@@ -37,7 +54,7 @@ export const useFoodDetail = (prop: Props) => {
     function init() {
       setFoodNutrients(
         extractFoodNutrients(
-          PassioSDK.fetchNutrientsForPassioFoodItem(
+          PassioSDK.getNutrientsOfPassioFoodItem(
             passioFoodItem,
             passioFoodItem.amount.weight
           )
@@ -50,19 +67,16 @@ export const useFoodDetail = (prop: Props) => {
   const onServingQuantityChange = useCallback(
     (value: string) => {
       setTextInput(value)
+      console.log(passioFoodItem.amount.selectedUnit)
       const newQuantity = Number(value.length > 0 ? value : 1)
       const weight =
-        passioFoodItem.amount.servingUnits
-          ?.filter((i) => i.unitName === passioFoodItem.amount.selectedUnit)
-          .at(0)?.value ?? 1
+        passioFoodItem.amount.servingUnits?.filter(
+          (i) => i.unitName === passioFoodItem.amount.selectedUnit
+        )[0].value ?? 1
 
       setPassioFoodItem((foodItem) => {
         foodItem.amount.weight.value = weight * newQuantity
         foodItem.amount.selectedQuantity = newQuantity
-        // foodItem.ingredients = calculateQuantityForIngredients(
-        //   foodItem,
-        //   foodItem.ingredients ?? []
-        // )
         return {
           ...foodItem,
         }
@@ -79,10 +93,6 @@ export const useFoodDetail = (prop: Props) => {
       setPassioFoodItem((foodItem) => {
         foodItem.amount.selectedUnit = value.unitName
         foodItem.amount.selectedQuantity = newQuantity
-        // foodItem.ingredients = calculateQuantityForIngredients(
-        //   foodItem,
-        //   foodItem.ingredients ?? []
-        // )
         return {
           ...foodItem,
         }
@@ -112,30 +122,6 @@ export const useFoodDetail = (prop: Props) => {
   const closeAddIngredients = () => {
     openAddIngredients(false)
   }
-
-  // const calculateQuantityForIngredients = (
-  //   item: PassioFoodItem,
-  //   passioIngredient: PassioIngredient[]
-  // ): PassioIngredient[] => {
-  //   const ratio =
-  //     gramsValue(
-  //       selectedServingUnit(
-  //         item.amount.selectedUnit,
-  //         item.amount.servingUnits ?? []
-  //       ) * item.amount.selectedQuantity,
-  //       'g'
-  //     ) / ingredientWeightInGram(item.ingredients ?? [])
-
-  //   console.log('ratio====', ratio)
-  //   return (
-  //     passioIngredient?.map((ingredientItem) => {
-  //       ingredientItem.amount.selectedQuantity = item.amount.selectedQuantity =
-  //         item.amount.selectedQuantity * ratio
-  //       return ingredientItem
-  //     }) ?? []
-  //   )
-  // }
-
   const onAddIngredients = (item: PassioFoodItem) => {
     closeAddIngredients()
     setPassioFoodItem((foodItem) => {

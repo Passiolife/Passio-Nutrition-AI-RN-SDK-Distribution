@@ -18,7 +18,7 @@ import {
   PassioIconView,
   IconSize,
   PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { getNutrientName } from '../utils/nutrients'
 import { FoodSearchView } from '../search'
 

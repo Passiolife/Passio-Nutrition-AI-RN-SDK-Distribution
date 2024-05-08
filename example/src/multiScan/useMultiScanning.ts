@@ -4,7 +4,7 @@ import {
   FoodDetectionEvent,
   PassioSDK,
   DetectedCandidate,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 /**
  * Custom hook for handling multi-scanning using PassioSDK.

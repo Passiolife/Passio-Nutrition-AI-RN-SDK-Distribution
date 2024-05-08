@@ -4,7 +4,7 @@ import {
   CompletedDownloadingFile,
   DownloadingError,
   PassioSDK,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 export type SDKStatus = 'init' | 'downloading' | 'error' | 'ready'
 
