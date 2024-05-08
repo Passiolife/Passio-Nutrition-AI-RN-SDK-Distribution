@@ -18,23 +18,23 @@
 		</data>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.abi.json</key>
 		<data>
-		OeXrZ5bBYIW5ovVTFborjU9EeUo=
+		kXizRdn7vugUIHYBnHldSe5Wmd8=
 		</data>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
 		<data>
-		6E8I2QPGIfUDz7IZnQLXMAqK0+k=
+		jKasA+wF1E9DuamuhOccYkBF+cA=
 		</data>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<data>
-		LD24d8SDXo25BnXhlEnR8nnQfY0=
+		Gz35zGP1HHxC3AlWfDNFLsCtJjA=
 		</data>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<data>
-		6E8I2QPGIfUDz7IZnQLXMAqK0+k=
+		jKasA+wF1E9DuamuhOccYkBF+cA=
 		</data>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		Jsx2l9x2pr5lAH1LwhubTmZDxuI=
+		r1JCkmsNbuGV+0D4wHgNKG6el2c=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -74,35 +74,35 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			ju8cV6yeKezSY28G7AOmhtcS7h6wQ0W7mqoASROWWE8=
+			zDbbAGcWd0hhfIwnDb7xr8SZQisEbrGL+rDOGQ5n/yg=
 			</data>
 		</dict>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			MNznxRCbX/C28tK0QwQh/hkE0mLXm9Ew52Rfqv1194s=
+			S13bVd5w+50ureLTaFlTzNVaZA9byu0KVC+SMzqI+Ac=
 			</data>
 		</dict>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			vGwbGF/PrG2FFp9nP++tRjh0zOg2CcRvFnbhOl7Cc7E=
+			TqXW2z8fitXuY23sQA7a0rznYBVAIKE7BcA5Jt2PRh8=
 			</data>
 		</dict>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			MNznxRCbX/C28tK0QwQh/hkE0mLXm9Ew52Rfqv1194s=
+			S13bVd5w+50ureLTaFlTzNVaZA9byu0KVC+SMzqI+Ac=
 			</data>
 		</dict>
 		<key>Modules/PassioNutritionAISDK.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			pICG4LVrNW09YfytCcgBxrUkspJ3GA1WUzvRKpf6UV4=
+			4rU42Wd29UVh2B2yzhxlJWknzIb8n7ufE55FyEZJM6E=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>

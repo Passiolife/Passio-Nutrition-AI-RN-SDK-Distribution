@@ -2,7 +2,7 @@ import {
   PassioFoodItem,
   IconSize,
   PassioIconView,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import React from 'react'

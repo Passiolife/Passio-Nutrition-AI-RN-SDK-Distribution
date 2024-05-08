@@ -7,7 +7,7 @@ import {
   type PassioFoodItem,
   DetectedCandidate,
   PassioSDK,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { AlternativeFood } from '../../../src/views/AlternativeFood'
 
 export interface QuickFoodResultProps {
@@ -28,7 +28,7 @@ export const QuickFoodResult = ({
   const styles = quickFoodResultStyle()
 
   const nutrients =
-    PassioSDK.fetchNutrientsSelectedSizeForPassioFoodItem(attribute)
+    PassioSDK.getNutrientsSelectedSizeOfPassioFoodItem(attribute)
 
   return (
     <Pressable

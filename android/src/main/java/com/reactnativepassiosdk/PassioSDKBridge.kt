@@ -4,7 +4,6 @@ import ai.passio.passiosdk.core.config.Bridge
 import ai.passio.passiosdk.core.config.PassioConfiguration
 import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
-import ai.passio.passiosdk.core.icons.IconSize
 import ai.passio.passiosdk.passiofood.*
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
 import android.content.Context
@@ -13,8 +12,19 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import bridgeBitmap
+import bridgeFoodCandidates
+import bridgeInflammatoryEffectData
+import bridgeNutritionFacts
+import bridgePassioMealPlan
+import bridgePassioMealPlanItem
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import mapBridged
+import mapNullable
+import mapStringArray
+import mapToStringArray
+import putIfNotNull
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -130,7 +140,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun getAttributesForPassioID(passioID: String, promise: Promise) {
+  fun fetchFoodItemForPassioID(passioID: String, promise: Promise) {
     PassioSDK.instance.fetchFoodItemForPassioID(passioID) { attributes ->
       if (attributes === null) {
         promise.resolve(null)
@@ -142,67 +152,89 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun fetchAttributesForBarcode(barcode: String, promise: Promise) {
+  fun fetchFoodItemForProductCode(barcode: String, promise: Promise) {
     PassioSDK.instance.fetchFoodItemForProductCode(barcode) { attributes ->
       val mapped = mapNullable(attributes, ::bridgePassioFoodItem)
       promise.resolve(mapped)
     }
   }
 
-  @ReactMethod
-  fun fetchPassioIDAttributesForPackagedFood(packagedFoodCode: String, promise: Promise) {
-    PassioSDK.instance.fetchFoodItemForProductCode(packagedFoodCode) { attributes ->
-      val mapped = mapNullable(attributes, ::bridgePassioFoodItem)
-      promise.resolve(mapped)
-    }
-  }
 
   @ReactMethod
   fun fetchSuggestions(mealTime: String, promise: Promise) {
-    PassioSDK.instance.fetchSuggestions(MealTime.valueOf(mealTime.uppercase())) { result ->
+    PassioSDK.instance.fetchSuggestions(PassioMealTime.valueOf(mealTime.uppercase())) { result ->
       val array = WritableNativeArray()
       for (item in result) {
-        array.pushMap(bridgePassioSearchResult(item))
+        array.pushMap(bridgePassioFoodDataInfo(item))
       }
       promise.resolve(array)
     }
   }
-
 
   @ReactMethod
   fun searchForFood(searchQuery: String, promise: Promise) {
     PassioSDK.instance.searchForFood(term = searchQuery, callback = { results, alternatives ->
       val map = WritableNativeMap()
       val mapAlternatives = alternatives.mapToStringArray()
-      val mapPassioSearchResult = results.mapBridged(::bridgePassioSearchResult)
+      val mapPassioSearchResult = results.mapBridged(::bridgePassioFoodDataInfo)
       map.putIfNotNull("results", mapPassioSearchResult)
       map.putIfNotNull("alternatives", mapAlternatives)
       promise.resolve(map)
     })
   }
 
-
   @ReactMethod
-  fun fetchFoodItemForSuggestion(searchQuery: ReadableMap, promise: Promise) {
-    PassioSDK.instance.fetchFoodItemForSuggestion(suggestion = bridgeSearchQuery(searchQuery), callback = { item ->
-      if (item !== null) {
-        promise.resolve(bridgePassioFoodItem(item))
-      } else {
-        promise.resolve(null)
-      }
-    })
+  fun fetchFoodItemForDataInfo(searchQuery: ReadableMap, promise: Promise) {
+    PassioSDK.instance.fetchFoodItemForDataInfo(
+      searchResult = bridgeSearchQuery(searchQuery),
+      callback = { item ->
+        if (item !== null) {
+          promise.resolve(bridgePassioFoodItem(item))
+        } else {
+          promise.resolve(null)
+        }
+      })
   }
 
+  @ReactMethod
+  fun fetchFoodItemForRefCode(refCode: String, promise: Promise) {
+    PassioSDK.instance.fetchFoodItemForRefCode(
+      refCode = refCode,
+      callback = { item ->
+        if (item !== null) {
+          promise.resolve(bridgePassioFoodItem(item))
+        } else {
+          promise.resolve(null)
+        }
+      })
+  }
 
   @ReactMethod
-  fun fetchSearchResult(searchQuery: ReadableMap, promise: Promise) {
-    PassioSDK.instance.fetchFoodItemForSearchResult(searchResult = bridgeSearchQuery(searchQuery), callback = { item ->
-      if (item !== null) {
-        promise.resolve(bridgePassioFoodItem(item))
+  fun fetchMealPlans(promise: Promise) {
+    PassioSDK.instance.fetchMealPlans { mealPlans ->
+      if (mealPlans.isNotEmpty()) {
+        promise.resolve(mealPlans.mapBridged(::bridgePassioMealPlan))
       } else {
         promise.resolve(null)
       }
-    })
+    }
+  }
+
+  @ReactMethod
+  fun fetchMealPlanForDay(
+    mealPlanLabel: String,
+    day: Int, promise: Promise
+  ) {
+    PassioSDK.instance.fetchMealPlanForDay(
+      mealPlanLabel = mealPlanLabel,
+      day = day
+    ) { mealPlansItem ->
+      if (mealPlansItem.isNotEmpty()) {
+        promise.resolve(mealPlansItem.mapBridged(::bridgePassioMealPlanItem))
+      } else {
+        promise.resolve(null)
+      }
+    }
   }
 
   @ReactMethod

@@ -12,10 +12,10 @@ import {
 import {
   PassioIconView,
   IconSize,
-  FoodSearchResult,
+  PassioFoodDataInfo,
   PassioFoodItem,
-  MealTime,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+  PassioMealTime,
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import useSuggestions from './useSuggestion'
 
 export interface Props {
@@ -23,27 +23,25 @@ export interface Props {
   onFoodDetail: (passioFoodItem: PassioFoodItem) => void
 }
 
-// FoodSearchScreen component
 export const FoodSuggestion = (props: Props) => {
-  // Get styles object from the searchStyle function
-  const styles = searchStyle()
+  const styles = suggestionStyle()
 
   // Destructure values from the custom hook
   const {
     foodResults,
     loading,
-    onSearchResultItemPress,
+    onResultItemPress,
     mealTime,
     onChangeMeal,
     mealTimes,
   } = useSuggestions(props)
 
   // Function to render each item in the FlatList
-  const renderSearchItem = ({ item }: { item: FoodSearchResult }) => {
+  const renderSuggestionItem = ({ item }: { item: PassioFoodDataInfo }) => {
     return (
       <TouchableOpacity
         style={styles.itemContainer}
-        onPress={() => onSearchResultItemPress(item)}
+        onPress={() => onResultItemPress(item)}
       >
         <View style={styles.itemIconContainer}>
           <PassioIconView
@@ -64,7 +62,7 @@ export const FoodSuggestion = (props: Props) => {
       </TouchableOpacity>
     )
   }
-  const renderMealTime = ({ item }: { item: MealTime }) => {
+  const renderMealTime = ({ item }: { item: PassioMealTime }) => {
     return (
       <TouchableOpacity
         style={styles.mealTimeContainer}
@@ -104,7 +102,7 @@ export const FoodSuggestion = (props: Props) => {
       <FlatList
         data={foodResults}
         contentContainerStyle={styles.list}
-        renderItem={renderSearchItem}
+        renderItem={renderSuggestionItem}
         ListEmptyComponent={renderLoading}
         ListHeaderComponent={() => {
           return (
@@ -118,7 +116,7 @@ export const FoodSuggestion = (props: Props) => {
 }
 
 // Styles for the component
-const searchStyle = () =>
+const suggestionStyle = () =>
   StyleSheet.create({
     closeButton: {},
     list: {

@@ -10,7 +10,7 @@ import BottomSheet from '@gorhom/bottom-sheet'
 import {
   DetectionCameraView,
   PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import React, { useMemo, useRef } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useMultiScanning } from './useMultiScanning'

@@ -37,7 +37,7 @@ export const convertPassioFoodItemV3ToPassioFoodItemV2 = (
 ): PassioFoodItemV2 | undefined => {
   if (foodItem) {
     const nutrients =
-      PassioSDK.fetchNutrientsSelectedSizeForPassioFoodItem(foodItem)
+      PassioSDK.getNutrientsSelectedSizeOfPassioFoodItem(foodItem)
     const item: PassioFoodItemV2 = {
       passioID: foodItem.id,
       name: foodItem.name,
@@ -97,7 +97,7 @@ export const convertPassioIngredientV3ToPassioFoodItemV2 = (
   foodItem: PassioIngredient | undefined
 ): PassioFoodItemV2 | undefined => {
   if (foodItem) {
-    const nutrients = PassioSDK.fetchNutrientsSelectedSizeForPassioFoodItem({
+    const nutrients = PassioSDK.getNutrientsSelectedSizeOfPassioFoodItem({
       ingredients: [foodItem],
       id: foodItem.id,
       name: foodItem.name,

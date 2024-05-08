@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@passiolife/nutritionai-react-native-sdk-v2": ["./src/index"]
+      "@passiolife/nutritionai-react-native-sdk-v3": ["./src/index"],
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

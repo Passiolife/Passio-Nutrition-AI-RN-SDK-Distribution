@@ -4,7 +4,7 @@ import type {
   PassioID,
   Barcode,
   PackagedFoodCode,
-  FoodSearchResult,
+  PassioFoodDataInfo,
 } from '../../models'
 import { NativeModules, Platform } from 'react-native'
 import type { PassioSDKInterface } from './PassioSDKInterface'
@@ -17,36 +17,36 @@ export const PassioSDK: PassioSDKInterface = {
   async getAttributesForPassioID(
     passioID: PassioID
   ): Promise<PassioIDAttributes | null> {
-    const result = await PassioSDKBridge.getAttributesForPassioID(passioID)
+    const result = await PassioSDKBridge.fetchFoodItemForPassioID(passioID)
     return convertPassioFoodItemV3ToPassioIdAttributes(result)
   },
 
   async fetchAttributesForBarcode(
     barcode: Barcode
   ): Promise<PassioIDAttributes | null> {
-    const result = await PassioSDKBridge.fetchAttributesForBarcode(barcode)
+    const result = await PassioSDKBridge.fetchFoodItemForProductCode(barcode)
     return convertPassioFoodItemV3ToPassioIdAttributes(result)
   },
 
   async fetchPassioIDAttributesForPackagedFood(
     packagedFoodCode: PackagedFoodCode
   ): Promise<PassioIDAttributes | null> {
-    const result = await PassioSDKBridge.fetchPassioIDAttributesForPackagedFood(
+    const result = await PassioSDKBridge.fetchFoodItemForProductCode(
       packagedFoodCode
     )
     return convertPassioFoodItemV3ToPassioIdAttributes(result)
   },
 
-  async fetchSearchResult(
-    queryResult: FoodSearchResult
+  async fetchFoodItemForDataInfo(
+    queryResult: PassioFoodDataInfo
   ): Promise<PassioIDAttributes | null> {
     if (Platform.OS === 'ios') {
-      const result = await PassioSDKBridge.fetchSearchResult(
+      const result = await PassioSDKBridge.fetchFoodItemForDataInfo(
         JSON.stringify(queryResult)
       )
       return convertPassioFoodItemV3ToPassioIdAttributes(result)
     } else {
-      const result = await PassioSDKBridge.fetchSearchResult(queryResult)
+      const result = await PassioSDKBridge.fetchFoodItemForDataInfo(queryResult)
       return convertPassioFoodItemV3ToPassioIdAttributes(result)
     }
   },

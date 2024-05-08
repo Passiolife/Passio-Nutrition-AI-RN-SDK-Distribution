@@ -9,7 +9,7 @@ import {
 import {
   DetectionCameraView,
   PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 import { useQuickScan } from './useQuickScan'
 import React from 'react'

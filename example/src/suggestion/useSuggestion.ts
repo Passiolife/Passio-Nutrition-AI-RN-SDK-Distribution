@@ -1,17 +1,17 @@
 import { useState, useCallback, useEffect } from 'react'
 import {
   PassioSDK,
-  type FoodSearchResult,
-  MealTime,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+  type PassioFoodDataInfo,
+  PassioMealTime,
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import type { Props } from './FoodSuggestion'
 
 const useSuggestions = ({ onFoodDetail }: Props) => {
   // State variables
-  const [mealTime, setMealTime] = useState<MealTime>('breakfast')
+  const [mealTime, setMealTime] = useState<PassioMealTime>('breakfast')
   const [loading, setLoading] = useState<boolean>(false)
-  const [foodResults, setFoodResults] = useState<FoodSearchResult[] | null>()
-  const mealTimes: MealTime[] = ['breakfast', 'dinner', 'lunch', 'snack']
+  const [foodResults, setFoodResults] = useState<PassioFoodDataInfo[] | null>()
+  const mealTimes: PassioMealTime[] = ['breakfast', 'dinner', 'lunch', 'snack']
 
   // Effect for handling debounced search term changes
   useEffect(() => {
@@ -33,11 +33,9 @@ const useSuggestions = ({ onFoodDetail }: Props) => {
     init()
   }, [mealTime])
 
-  const onSearchResultItemPress = useCallback(
-    async (foodSearchResult: FoodSearchResult) => {
-      const result = await PassioSDK.fetchFoodItemForSuggestion(
-        foodSearchResult
-      )
+  const onResultItemPress = useCallback(
+    async (foodSearchResult: PassioFoodDataInfo) => {
+      const result = await PassioSDK.fetchFoodItemForDataInfo(foodSearchResult)
       if (result) {
         onFoodDetail(result)
       }
@@ -45,7 +43,7 @@ const useSuggestions = ({ onFoodDetail }: Props) => {
     [onFoodDetail]
   )
 
-  const onChangeMeal = (mealTime: MealTime) => {
+  const onChangeMeal = (mealTime: PassioMealTime) => {
     setMealTime(mealTime)
   }
 
@@ -54,7 +52,7 @@ const useSuggestions = ({ onFoodDetail }: Props) => {
     mealTimes,
     onChangeMeal,
     loading,
-    onSearchResultItemPress,
+    onResultItemPress,
     mealTime,
   }
 }

@@ -4,7 +4,7 @@ import {
   IconSize,
   PassioIconView,
   type DetectedCandidate,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 interface AlternativeFoodProps {
   detectedCandidates: DetectedCandidate[]

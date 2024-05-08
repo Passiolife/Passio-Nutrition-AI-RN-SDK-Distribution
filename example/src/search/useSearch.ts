@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import {
   PassioSDK,
-  type FoodSearchResult,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+  type PassioFoodDataInfo,
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { useDebounce } from '../utils/common'
 import type { Props } from './FoodSearch'
 
@@ -10,7 +10,7 @@ const useFoodSearch = ({ onFoodDetail }: Props) => {
   // State variables
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
-  const [foodResults, setFoodResults] = useState<FoodSearchResult[] | null>()
+  const [foodResults, setFoodResults] = useState<PassioFoodDataInfo[] | null>()
   const [alternatives, setAlternative] = useState<string[] | null>()
   const debouncedSearchTerm: string = useDebounce<string>(searchQuery, 500)
 
@@ -73,9 +73,9 @@ const useFoodSearch = ({ onFoodDetail }: Props) => {
   }, [callSearchApi, debouncedSearchTerm, cleanSearch])
 
   const onSearchResultItemPress = useCallback(
-    async (foodSearchResult: FoodSearchResult) => {
+    async (foodSearchResult: PassioFoodDataInfo) => {
       // Achieved Result through `fetchSearchResult`
-      const result = await PassioSDK.fetchSearchResult(foodSearchResult)
+      const result = await PassioSDK.fetchFoodItemForDataInfo(foodSearchResult)
       if (result) {
         onFoodDetail(result)
       }

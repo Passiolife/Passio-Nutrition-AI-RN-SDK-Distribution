@@ -9,19 +9,22 @@ import {
   ImageBackground,
   Alert,
   Dimensions,
+  ScrollView,
 } from 'react-native'
 import { FoodDetectionView } from './detailScan/FoodDetectionView'
 import { SDKStatus, useCameraAuthorization, usePassioSDK } from './App.hooks'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { FoodSearchView } from './search'
 import { MultiScanView } from './multiScan/MultiScanView'
+import { PASSIO_KEY } from './key'
 import { QuickScanningScreen } from './quick/QuickScanningScreen'
 import {
   PassioSDK,
   type PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import FoodDetail from './editor/FoodDetail'
 import { FoodSuggestion } from './suggestion'
+import { MealPlan } from './mealPlan'
 
 type ViewType =
   | 'Scan'
@@ -30,6 +33,7 @@ type ViewType =
   | 'Home'
   | 'Quick'
   | 'Suggestion'
+  | 'MealPlan'
 
 const logo = require('./assets/passio_logo.png')
 
@@ -39,7 +43,7 @@ export const LoadingContainerView = () => {
   const cameraAuthorized = useCameraAuthorization()
 
   const sdkStatus = usePassioSDK({
-    key: '',
+    key: PASSIO_KEY,
     autoUpdate: true,
   })
 
@@ -75,7 +79,7 @@ export const LoadingContainerView = () => {
 
             if (max) {
               if (max.passioID) {
-                const result = await PassioSDK.getAttributesForPassioID(
+                const result = await PassioSDK.fetchFoodItemForPassioID(
                   max.passioID
                 )
                 setPassioFoodItem(result)
@@ -101,6 +105,10 @@ export const LoadingContainerView = () => {
 
   const onSuggestion = useCallback(() => {
     setViewType('Suggestion')
+  }, [])
+
+  const onMealPlan = useCallback(() => {
+    setViewType('MealPlan')
   }, [])
 
   const onMultiScanning = useCallback(() => {
@@ -153,6 +161,13 @@ export const LoadingContainerView = () => {
                 onFoodDetail={setPassioFoodItem}
               />
             )
+          case 'MealPlan':
+            return (
+              <MealPlan
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
 
           default:
             // Handle invalid viewType or provide a default view
@@ -169,6 +184,7 @@ export const LoadingContainerView = () => {
                 onMultiScanning={onMultiScanning}
                 onQuickScanning={onQuickScanning}
                 onSuggestion={onSuggestion}
+                onMealPlan={onMealPlan}
               />
             )
         }
@@ -211,6 +227,7 @@ const LoadingView = (props: {
   onScanImagePress: () => void
   onSearchFood: () => void
   onSuggestion: () => void
+  onMealPlan: () => void
   onMultiScanning: () => void
   onQuickScanning: () => void
 }) => {
@@ -225,47 +242,49 @@ const LoadingView = (props: {
         resizeMode="contain"
         resizeMethod="resize"
       />
-      <View style={styles.actions}>
-        {props.status === 'downloading' ? (
-          <Text>{`'Downloading models... `}</Text>
-        ) : null}
-        {props.status === 'error' ? <Text>{'Error!'}</Text> : null}
-        {props.fileLeft !== null && props.fileLeft !== 0 ? (
-          <Text>{`Downloading file lefts... ${props.fileLeft}`}</Text>
-        ) : null}
+      <ScrollView>
+        <View style={styles.actions}>
+          {props.status === 'downloading' ? (
+            <Text>{`'Downloading models... `}</Text>
+          ) : null}
+          {props.status === 'error' ? <Text>{'Error!'}</Text> : null}
+          {props.fileLeft !== null && props.fileLeft !== 0 ? (
+            <Text>{`Downloading file lefts... ${props.fileLeft}`}</Text>
+          ) : null}
 
-        {props.status === 'ready' ? (
-          <>
-            <View style={styles.space} />
-            <FeatureButton title="Text Search" onClick={props.onSearchFood} />
-            {props.status === 'ready' && props.cameraAuthorized ? (
-              <>
-                <FeatureButton
-                  title="Food Scanner"
-                  onClick={props.onPressStart}
-                />
-                <FeatureButton
-                  title="Quick Scan"
-                  onClick={props.onQuickScanning}
-                />
-                <FeatureButton
-                  title="Multi Scan (Only visual food)"
-                  onClick={props.onMultiScanning}
-                />
-              </>
-            ) : null}
-            <FeatureButton
-              title="Meal Suggestion"
-              onClick={props.onSuggestion}
-            />
-
-            <FeatureButton
-              title={props.loading ? 'Please wait, Loading...' : 'Pick Image'}
-              onClick={props.onScanImagePress}
-            />
-          </>
-        ) : null}
-      </View>
+          {props.status === 'ready' ? (
+            <>
+              <View style={styles.space} />
+              <FeatureButton title="Text Search" onClick={props.onSearchFood} />
+              {props.status === 'ready' && props.cameraAuthorized ? (
+                <>
+                  <FeatureButton
+                    title="Food Scanner"
+                    onClick={props.onPressStart}
+                  />
+                  <FeatureButton
+                    title="Quick Scan"
+                    onClick={props.onQuickScanning}
+                  />
+                  <FeatureButton
+                    title="Multi Scan (Only visual food)"
+                    onClick={props.onMultiScanning}
+                  />
+                </>
+              ) : null}
+              <FeatureButton
+                title="Meal Suggestion"
+                onClick={props.onSuggestion}
+              />
+              <FeatureButton
+                title={props.loading ? 'Please wait, Loading...' : 'Pick Image'}
+                onClick={props.onScanImagePress}
+              />
+              <FeatureButton title="Meal Plan" onClick={props.onMealPlan} />
+            </>
+          ) : null}
+        </View>
+      </ScrollView>
     </ImageBackground>
   )
 }
@@ -293,7 +312,7 @@ const styles = StyleSheet.create({
     height: 150,
     width: 300,
     alignSelf: 'center',
-    flex: 1,
+    marginVertical: 32,
   },
   actions: {
     flex: 1,

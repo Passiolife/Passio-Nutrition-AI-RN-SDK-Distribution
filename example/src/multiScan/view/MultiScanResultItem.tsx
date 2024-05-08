@@ -7,7 +7,7 @@ import {
   PassioFoodItem,
   PassioIconView,
   PassioSDK,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import { AlternativeFood } from '../../views/AlternativeFood'
 
 export interface MultiScanResultItemProps {
@@ -28,7 +28,7 @@ export const MultiScanResultItem = ({
   return (
     <Pressable
       onPress={async () => {
-        const result = await PassioSDK.getAttributesForPassioID(
+        const result = await PassioSDK.fetchFoodItemForPassioID(
           attribute.passioID
         )
         if (result) {

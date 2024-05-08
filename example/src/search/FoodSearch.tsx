@@ -14,9 +14,9 @@ import {
 import {
   PassioIconView,
   IconSize,
-  FoodSearchResult,
+  PassioFoodDataInfo,
   PassioFoodItem,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 import useFoodSearch from './useSearch'
 
 export interface Props {
@@ -40,7 +40,7 @@ export const FoodSearchView = (props: Props) => {
   } = useFoodSearch(props)
 
   // Function to render each item in the FlatList
-  const renderSearchItem = ({ item }: { item: FoodSearchResult }) => {
+  const renderSearchItem = ({ item }: { item: PassioFoodDataInfo }) => {
     return (
       <TouchableOpacity
         style={styles.itemContainer}

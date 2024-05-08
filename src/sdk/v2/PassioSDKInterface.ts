@@ -1,7 +1,7 @@
 import type { PassioIDAttributes } from '../../models/v2'
 import type {
   Barcode,
-  FoodSearchResult,
+  PassioFoodDataInfo,
   PackagedFoodCode,
   PassioID,
 } from '../../models'
@@ -16,7 +16,7 @@ export interface PassioSDKInterface
     | 'getAttributesForPassioID'
     | 'fetchAttributesForBarcode'
     | 'fetchPassioIDAttributesForPackagedFood'
-    | 'fetchSearchResult'
+    | 'fetchFoodItemForDataInfo'
   > {
   /**
    * Look up the nutrition attributes for a given Passio ID.
@@ -50,7 +50,7 @@ export interface PassioSDKInterface
    * @param result - Provide `PassioSearchResult` object get `PassioIDAttributes` detail.
    * @returns A `Promise` resolving to `PassioIDAttributes` detail.
    */
-  fetchSearchResult(
-    result: FoodSearchResult
+  fetchFoodItemForDataInfo(
+    result: PassioFoodDataInfo
   ): Promise<PassioIDAttributes | null>
 }

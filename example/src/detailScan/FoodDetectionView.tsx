@@ -7,7 +7,7 @@ import {
   PackagedFoodCode,
   PassioFoodItem,
   PassioSDK,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 
 import { Candidate, DetectionLabelListView } from './DetectionLabelListView'
 import React, { useEffect, useState } from 'react'
@@ -115,7 +115,7 @@ async function getAttributesFromVisualCandidates(
   candidates: DetectedCandidate[]
 ): Promise<PassioFoodItem[]> {
   const getAttributes = candidates.map(({ passioID }) => {
-    return PassioSDK.getAttributesForPassioID(passioID).then(
+    return PassioSDK.fetchFoodItemForPassioID(passioID).then(
       (attr: PassioFoodItem | null) => {
         attributeLogging &&
           console.log(
@@ -134,7 +134,7 @@ async function getAttributesForBarcodeCandidates(
   candidates: BarcodeCandidate[]
 ): Promise<PassioFoodItem[]> {
   const getAttributes = candidates.map(({ barcode }) => {
-    return PassioSDK.fetchAttributesForBarcode(barcode).then(
+    return PassioSDK.fetchFoodItemForProductCode(barcode).then(
       (attr: PassioFoodItem | null) => {
         attributeLogging &&
           console.log('Got barcode attributes ', JSON.stringify(attr, null, 2))
@@ -150,13 +150,13 @@ async function getAttributesForPackagedFoodCandidates(
   candidates: PackagedFoodCode[]
 ): Promise<PassioFoodItem[]> {
   const getAttributes = candidates.map((packagedFoodCode) => {
-    return PassioSDK.fetchPassioIDAttributesForPackagedFood(
-      packagedFoodCode
-    ).then((attr: PassioFoodItem | null) => {
-      attributeLogging &&
-        console.log('Got OCR attributes ', JSON.stringify(attr, null, 2))
-      return attr
-    })
+    return PassioSDK.fetchFoodItemForProductCode(packagedFoodCode).then(
+      (attr: PassioFoodItem | null) => {
+        attributeLogging &&
+          console.log('Got OCR attributes ', JSON.stringify(attr, null, 2))
+        return attr
+      }
+    )
   })
   const attrs = await Promise.all(getAttributes)
   return attrs.filter(notEmpty)

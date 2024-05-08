@@ -1,26 +1,30 @@
 package com.reactnativepassiosdk
 
+import ai.passio.passiosdk.passiofood.PassioFoodDataInfo
 import ai.passio.passiosdk.passiofood.PassioSearchNutritionPreview
-import ai.passio.passiosdk.passiofood.PassioSearchResult
 import ai.passio.passiosdk.passiofood.data.model.*
+import bridgeMeasurementIU
+import bridgeServingSize
+import bridgeServingUnits
+import bridgeUnitEnergy
+import bridgeUnitMass
 import com.facebook.react.bridge.*
+import mapBridged
+import mapToStringArray
+import putIfNotNull
 
 fun bridgePassioFoodItem(foodItem: PassioFoodItem): ReadableMap {
   val map = WritableNativeMap()
   map.putIfNotNull("id", foodItem.id)
+  map.putIfNotNull("refCode", foodItem.refCode)
   map.putIfNotNull("name", foodItem.name)
   map.putIfNotNull("details", foodItem.details)
   map.putIfNotNull("iconId", foodItem.iconId)
   map.putIfNotNull("amount", bridgePassioFoodAmount(foodItem.amount))
   map.putIfNotNull("ingredients", foodItem.ingredients.mapBridged(::bridgePassioIngredient))
-  map.putIfNotNull("nutrients", bridgePassioNutrients((foodItem.nutrients(foodItem.weight()))))
-  map.putIfNotNull("nutrientsReference", bridgePassioNutrients((foodItem.nutrientsReference())))
-  map.putIfNotNull(
-    "nutrientsSelectedSize",
-    bridgePassioNutrients((foodItem.nutrientsSelectedSize()))
-  )
   map.putIfNotNull("weight", bridgeUnitMass((foodItem.weight())))
-  map.putIfNotNull("isOpenFood", foodItem.isOpenFood())
+  map.putIfNotNull("isOpenFood", foodItem.isOpenFoodAsBoolean())
+  map.putIfNotNull("openFoodLicense", foodItem.openFoodLicense())
   return map
 }
 
@@ -38,14 +42,11 @@ fun bridgePassioFoodAmount(passioFoodAmount: PassioFoodAmount): ReadableMap {
 fun bridgePassioIngredient(passioIngredient: PassioIngredient): ReadableMap {
   val map = WritableNativeMap()
   map.putIfNotNull("name", passioIngredient.name)
+  map.putIfNotNull("refCode", passioIngredient.refCode)
   map.putIfNotNull("id", passioIngredient.id)
   map.putIfNotNull("iconId", passioIngredient.iconId)
   map.putIfNotNull("weight", bridgeUnitMass(passioIngredient.weight()))
   map.putIfNotNull("referenceNutrients", bridgePassioNutrients(passioIngredient.referenceNutrients))
-  map.putIfNotNull(
-    "nutrients",
-    bridgePassioNutrients(passioIngredient.nutrients(passioIngredient.weight()))
-  )
   map.putIfNotNull("metadata", bridgePassioFoodMetadata(passioIngredient.metadata))
   map.putIfNotNull("amount", bridgePassioFoodAmount(passioIngredient.amount))
   return map
@@ -121,20 +122,48 @@ fun bridgePassioNutrients(passioNutrients: PassioNutrients): ReadableMap {
   return map
 }
 
-fun bridgePassioSearchResult(passioSearchResult: PassioSearchResult): ReadableMap {
+fun bridgeSearchQuery(searchQuery: ReadableMap): PassioFoodDataInfo {
+  val previewMap = searchQuery.getMap("nutritionPreview")
+  val preview = PassioSearchNutritionPreview(
+    calories = previewMap?.getInt("calories") ?: 0,
+    servingUnit = previewMap?.getString("servingUnit") ?: "",
+    servingQuantity = previewMap?.getDouble("servingQuantity") ?: 0.0,
+    weightQuantity = previewMap?.getDouble("weightQuantity") ?: 0.0,
+    weightUnit = previewMap?.getString("weightUnit") ?: "",
+    carbs = previewMap?.getDouble("carbs") ?: 0.0,
+    protein = previewMap?.getDouble("protein")?: 0.0,
+    fat = previewMap?.getDouble("fat") ?: 0.0,
+  )
+  val query = PassioFoodDataInfo(
+    foodName = searchQuery.getString("foodName") ?: "",
+    brandName = searchQuery.getString("brandName") ?: "",
+    iconID = searchQuery.getString("iconID") ?: "",
+    score = searchQuery.getDouble("score") ?: 0.0,
+    scoredName = searchQuery.getString("scoredName") ?: "",
+    labelId = searchQuery.getString("labelId") ?: "",
+    type = searchQuery.getString("type") ?: "",
+    resultId = searchQuery.getString("resultId") ?: "",
+    nutritionPreview = preview,
+    useShortName = searchQuery.getBoolean("useShortName"),
+  );
+  return query
+}
+
+fun bridgePassioFoodDataInfo(passioFoodDataInfo: PassioFoodDataInfo): ReadableMap {
   val map = WritableNativeMap()
-  map.putIfNotNull("brandName", passioSearchResult.brandName)
-  map.putIfNotNull("foodName", passioSearchResult.foodName)
-  map.putIfNotNull("iconID", passioSearchResult.iconID)
-  map.putIfNotNull("labelId", passioSearchResult.labelId)
-  map.putIfNotNull("resultId", passioSearchResult.resultId)
-  map.putIfNotNull("score", passioSearchResult.score)
-  map.putIfNotNull("scoredName", passioSearchResult.scoredName)
-  map.putIfNotNull("type", passioSearchResult.type)
+  map.putIfNotNull("brandName", passioFoodDataInfo.brandName)
+  map.putIfNotNull("foodName", passioFoodDataInfo.foodName)
+  map.putIfNotNull("iconID", passioFoodDataInfo.iconID)
+  map.putIfNotNull("labelId", passioFoodDataInfo.labelId)
+  map.putIfNotNull("resultId", passioFoodDataInfo.resultId)
+  map.putIfNotNull("score", passioFoodDataInfo.score)
+  map.putIfNotNull("scoredName", passioFoodDataInfo.scoredName)
+  map.putIfNotNull("type", passioFoodDataInfo.type)
+  map.putIfNotNull("useShortName", passioFoodDataInfo.useShortName)
 
   map.putIfNotNull(
     "nutritionPreview",
-    bridgePassioSearchNutritionPreview((passioSearchResult.nutritionPreview))
+    bridgePassioSearchNutritionPreview((passioFoodDataInfo.nutritionPreview))
   )
   return map
 }
@@ -147,11 +176,13 @@ fun bridgePassioSearchNutritionPreview(passioSearchNutritionPreview: PassioSearc
   map.putIfNotNull("protein", passioSearchNutritionPreview.protein)
   map.putIfNotNull("servingQuantity", passioSearchNutritionPreview.servingQuantity)
   map.putIfNotNull("servingUnit", passioSearchNutritionPreview.servingUnit)
-  map.putIfNotNull("servingWeight", passioSearchNutritionPreview.servingWeight)
+  map.putIfNotNull("weightQuantity", passioSearchNutritionPreview.weightQuantity)
+  map.putIfNotNull("weightUnit", passioSearchNutritionPreview.weightUnit)
   return map
 }
 
-fun PassioFoodItem.isOpenFood(): Boolean {
+fun PassioFoodItem.isOpenFoodAsBoolean(): Boolean {
+
   ingredients.forEach { ingredient ->
     if (ingredient.metadata.foodOrigins?.find { it.source == "openfood" } != null) {
       return true
@@ -159,28 +190,13 @@ fun PassioFoodItem.isOpenFood(): Boolean {
   }
   return false
 }
-
-fun bridgeSearchQuery(searchQuery: ReadableMap): PassioSearchResult {
-  val previewMap = searchQuery.getMap("nutritionPreview")
-  val preview = PassioSearchNutritionPreview(
-    calories = previewMap?.getInt("calories") ?: 0,
-    servingUnit = previewMap?.getString("servingUnit") ?: "",
-    servingQuantity = previewMap?.getDouble("servingQuantity") ?: 0.0,
-    servingWeight = previewMap?.getString("servingWeight") ?: "",
-    carbs = previewMap?.getDouble("carbs") ?: 0.0,
-     protein = previewMap?.getDouble("protein")?: 0.0,
-     fat = previewMap?.getDouble("fat") ?: 0.0,
-  )
-  val query = PassioSearchResult(
-    foodName = searchQuery.getString("foodName") ?: "",
-    brandName = searchQuery.getString("brandName") ?: "",
-    iconID = searchQuery.getString("iconID") ?: "",
-    score = searchQuery.getDouble("score") ?: 0.0,
-    scoredName = searchQuery.getString("scoredName") ?: "",
-    labelId = searchQuery.getString("labelId") ?: "",
-    type = searchQuery.getString("type") ?: "",
-    resultId = searchQuery.getString("resultId") ?: "",
-    nutritionPreview = preview
-  );
-  return query
+fun PassioFoodItem.openFoodLicense(): String? {
+  ingredients.forEach { ingredient ->
+    if (ingredient.metadata.openFoodLicense() != null) {
+      return ingredient.metadata.openFoodLicense()
+    }
+  }
+  return null
 }
+
+
