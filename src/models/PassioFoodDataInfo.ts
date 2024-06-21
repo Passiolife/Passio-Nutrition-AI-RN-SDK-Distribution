@@ -21,5 +21,5 @@ export interface PassioFoodDataInfo {
   // Property for the type of the food
   type?: string
   // Property for indicating whether to use short name for the info
-  useShortName?: boolean
+  isShortName?: boolean
 }

@@ -26,8 +26,25 @@ export type SDKError = {
   errorMessage: string
 }
 
+export type SDKBeingConfigured = {
+  mode: 'isBeingConfigured'
+  activeModels: number
+  missingFiles: string[]
+}
+
+export type SDKDownloadingModels = {
+  mode: 'isDownloadingModels'
+  activeModels: number
+  missingFiles: string[]
+}
+
 /**
  * The possible states of the SDK after calling configure. Switch on status.mode to
  * access the data associated with each state.
  */
-export type PassioStatus = SDKNotReady | SDKReadyForDetection | SDKError
+export type PassioStatus =
+  | SDKNotReady
+  | SDKReadyForDetection
+  | SDKError
+  | SDKBeingConfigured
+  | SDKDownloadingModels

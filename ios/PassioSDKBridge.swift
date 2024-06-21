@@ -9,74 +9,88 @@ import PassioNutritionAISDK
 class PassioSDKBridge: RCTEventEmitter {
     
     private let sdk = PassioNutritionAI.shared
+    private let nutritionAdvisorSDK = NutritionAdvisor.shared
     private var debugMode = false
     private let completedDownloadingFileEventName = "completedDownloadingFile"
     private let downloadingErrorEventName = "downloadingError"
+    private let onPassioStatusChangedEventName = "onPassioStatusChanged"
     
     @objc(configure:debugMode:autoUpdate:localModelURLs:withResolver:withRejecter:)
-    func configure(key: String,
-                   debugMode: Int,
-                   autoUpdate: Bool,
-                   localModelURLs: [String]?,
-                   resolve: @escaping RCTPromiseResolveBlock,
-                   reject: @escaping RCTPromiseRejectBlock) -> Void {
-        
-        let localFiles = localModelURLs?.compactMap(URL.init(fileURLWithPath:))
-        
-        var config = PassioConfiguration(key: key)
-        config.debugMode = debugMode
-        config.sdkDownloadsModels = autoUpdate
-        config.filesLocalURLs = localFiles
-        config.bridge = .reactNative
-        self.debugMode = debugMode == 0 ? false : true
-        
-        sdk.statusDelegate = self
-        
-        if #available(iOS 13.0, *) {
-            sdk.configure(passioConfiguration: config) { (status) in
-                
-                switch status.mode {
-                case .isReadyForDetection:
-                    resolve([
-                        "mode": "isReadyForDetection",
-                        "activeModels": status.activeModels ?? 0,
-                        "missingFiles": (status.missingFiles as [String]?) ?? []
-                    ])
-                case .notReady:
-                    resolve([
-                        "mode": "notReady",
-                        "missingFiles": (status.missingFiles as [String]?) ?? []
-                    ])
-                case .isDownloadingModels:
-                    print("PassioSDK: auto update configured, downloading models...")
-                case .isBeingConfigured: break
-                case .failedToConfigure:
-                    resolve([
-                        "mode": "error",
-                        "errorMessage": status.error?.errorDescription ?? "unknown"
-                    ])
-                @unknown default: break
-                }
-            }
-        } else {
-            let errMessage = "PassioSDK Error: Only iOS versions >=13 supported"
-            print(errMessage)
-            resolve([
-                "mode": "error",
-                "errorMessage": errMessage
-            ])
-        }
-    }
+       func configure(key: String,
+                      debugMode: Int,
+                      autoUpdate: Bool,
+                      localModelURLs: [String]?,
+                      resolve: @escaping RCTPromiseResolveBlock,
+                      reject: @escaping RCTPromiseRejectBlock) -> Void {
+           
+           let localFiles = localModelURLs?.compactMap(URL.init(fileURLWithPath:))
+           
+           var config = PassioConfiguration(key: key)
+           config.debugMode = debugMode
+           config.sdkDownloadsModels = autoUpdate
+           config.filesLocalURLs = localFiles
+           config.bridge = .reactNative
+           self.debugMode = debugMode == 0 ? false : true
+           
+           sdk.statusDelegate = self
+           
+           if #available(iOS 13.0, *) {
+               sdk.configure(passioConfiguration: config) { (status) in
+                   
+                   switch status.mode {
+                   case .isReadyForDetection:
+                       resolve([
+                           "mode": "isReadyForDetection",
+                           "activeModels": status.activeModels ?? 0,
+                           "missingFiles": (status.missingFiles as [String]?) ?? []
+                       ])
+                   case .notReady:
+                       resolve([
+                           "mode": "notReady",
+                           "missingFiles": (status.missingFiles as [String]?) ?? []
+                       ])
+                   case .isDownloadingModels:
+                       print("PassioSDK: auto update configured, downloading models...")
+                   case .isBeingConfigured: break
+                   case .failedToConfigure:
+                       resolve([
+                           "mode": "error",
+                           "errorMessage": status.error?.errorDescription ?? "unknown"
+                       ])
+                   @unknown default: break
+                   }
+               }
+           } else {
+               let errMessage = "PassioSDK Error: Only iOS versions >=13 supported"
+               print(errMessage)
+               resolve([
+                   "mode": "error",
+                   "errorMessage": errMessage
+               ])
+           }
+       }
     
-    @objc(startFoodDetection:detectPackagedFood:detectNutritionFacts:)
-    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool, detectNutritionFacts: Bool) {
+    
+    @objc(startFoodDetection:detectPackagedFood:volumeDetectionMode:)
+    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,volumeDetectionMode:String?) {
+        
+        var mode = PassioNutritionAISDK.VolumeDetectionMode.auto
+        
+        if let detectionMode = volumeDetectionMode {
+            if(detectionMode == "auto"){
+                mode = PassioNutritionAISDK.VolumeDetectionMode.auto
+            }else  if(detectionMode == "dualWideCamera"){
+                mode = PassioNutritionAISDK.VolumeDetectionMode.dualWideCamera
+            }else  if(detectionMode == "none"){
+                mode = PassioNutritionAISDK.VolumeDetectionMode.none
+            }
+        }
         
         let config = FoodDetectionConfiguration(
             detectVisual: true,
-            volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode.auto,
+            volumeDetectionMode: mode,
             detectBarcodes: detectBarcodes,
-            detectPackagedFood: detectPackagedFood,
-            nutritionFacts: detectNutritionFacts
+            detectPackagedFood: detectPackagedFood
         )
         
         if #available(iOS 13.0, *) {
@@ -109,12 +123,62 @@ class PassioSDKBridge: RCTEventEmitter {
         sdk.stopFoodDetection()
     }
     
+    @objc(startNutritionFactsDetection)
+    func startNutritionFactsDetection() {
+        
+       
+        if #available(iOS 13.0, *) {
+            if debugMode {
+                
+                print("PassioSDK: Starting nutrition detection...")
+            }
+            
+            sdk.startNutritionFactsDetection(nutritionfactsDelegate: self) { [weak self] (isReady) in
+                
+                
+                if self?.debugMode == true {
+                    
+                    print("PassioSDK: nutrition detection ready = \(isReady)")
+                }
+            }
+            
+        } else {
+            print("PassioSDK Error: nutrition detection only supported on iOS 13 and above")
+        }
+    }
+    
+    @objc(stopNutritionFactsDetection)
+    func stopNutritionFactsDetection() {
+        
+        if debugMode {
+            print("PassioSDK: Stopping nutrition detection...")
+        }
+        
+        sdk.stopFoodDetection()
+    }
+    
+    
     @objc(fetchFoodItemForPassioID:withResolver:withRejecter:)
     func fetchFoodItemForPassioID(passioID: String,
                                   resolve: @escaping RCTPromiseResolveBlock,
                                   reject: @escaping RCTPromiseRejectBlock) {
         
         sdk.fetchFoodItemFor(passioID: passioID) {attributes in
+            if let attributes = attributes {
+                let bridged = bridgePassioFoodItem(attributes)
+                resolve(bridged)
+            } else {
+                resolve(NSNull())
+            }
+        }
+    }
+    
+    @objc(fetchFoodItemLegacy:withResolver:withRejecter:)
+    func fetchFoodItemLegacy(passioID: String,
+                                  resolve: @escaping RCTPromiseResolveBlock,
+                                  reject: @escaping RCTPromiseRejectBlock) {
+        
+        sdk.fetchFoodItemLegacy(from:passioID) {attributes in
             if let attributes = attributes {
                 let bridged = bridgePassioFoodItem(attributes)
                 resolve(bridged)
@@ -144,8 +208,7 @@ class PassioSDKBridge: RCTEventEmitter {
     func fetchFoodItemForProductCode(code: String,
                                    resolve: @escaping RCTPromiseResolveBlock,
                                    reject: @escaping RCTPromiseRejectBlock) {
-        
-        sdk.fetchFoodItemFor(productCode: code) { attributes in
+                sdk.fetchFoodItemFor(productCode: code) { attributes in
             if let attributes = attributes {
                 let bridged = bridgePassioFoodItem(attributes)
                 resolve(bridged)
@@ -211,8 +274,54 @@ class PassioSDKBridge: RCTEventEmitter {
             }
            
         }
+    }    
+    @objc(recognizeSpeechRemote:withResolver:withRejecter:)
+    func recognizeSpeechRemote(text: String,
+                       resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+        
+       
+        sdk.recognizeSpeechRemote(from: text) { (response: [Any]) in
+            
+            if let result = response as? [PassioSpeechRecognitionModel] {
+                resolve(result.map(bridgePassioSpeechRecognitionModel))
+            } else {
+                resolve(NSNull())
+            }
+           
+        }
     }
     
+    @objc(recognizeImageRemote:resolution:withResolver:withRejecter:)
+    func recognizeImageRemote(imageUri: String,
+                              resolution:String,
+                                       resolve: @escaping RCTPromiseResolveBlock,
+                                       reject: @escaping RCTPromiseRejectBlock) {
+        let image = UIImage(contentsOfFile: imageUri)
+        if image == nil {
+            reject("PASSIO-SDK", "no image found", nil)
+        } else {
+       
+            let resolutionType: PassioImageResolution
+
+            if resolution == "RES_512" {
+                resolutionType = PassioImageResolution.res_512
+            } else if resolution == "RES_1080" {
+                resolutionType = PassioImageResolution.res_1080
+            } else {
+                resolutionType = PassioImageResolution.full
+            }
+        
+            sdk.recognizeImageRemote(image: image!,resolution: resolutionType) { (response: [Any]) in
+                
+                if let result = response as? [PassioAdvisorFoodInfo] {
+                    resolve(result.map(bridgePassioAdvisorFoodInfo))
+                } else {
+                    resolve(NSNull())
+                }
+               }
+         }
+    }
     
     
     @objc
@@ -222,7 +331,7 @@ class PassioSDKBridge: RCTEventEmitter {
     
     override func supportedEvents() -> [String]! {
         
-        return [foodDetectionEventName, completedDownloadingFileEventName, downloadingErrorEventName]
+        return [foodDetectionEventName,nutritionFactsRecognitionEventName,onPassioStatusChangedEventName, completedDownloadingFileEventName, downloadingErrorEventName]
     }
 
     
@@ -235,8 +344,7 @@ class PassioSDKBridge: RCTEventEmitter {
             detectVisual: true,
             volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode.auto,
             detectBarcodes: true,
-            detectPackagedFood: true,
-            nutritionFacts: true
+            detectPackagedFood: true
         )
 
         if image == nil {
@@ -251,6 +359,8 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
     }
+    
+   
     
     @objc(addToPersonalization:visualCadidate:)
     func addToPersonalization(visualCadidate: String, alternative: String) -> Bool {
@@ -330,17 +440,135 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
+    
+    @objc(fetchHiddenIngredients:withResolver:withRejecter:)
+    func fetchHiddenIngredients(
+        foodName:String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock) {
+            
+         sdk.fetchHiddenIngredients(foodName:foodName) { status in
+                resolve(bridgePassioFetchPassioAdvisorFoodInfos(status))
+            }
+        }
+    
+    
+    @objc(fetchVisualAlternatives:withResolver:withRejecter:)
+    func fetchVisualAlternatives(
+        foodName:String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock) {
+            
+            sdk.fetchVisualAlternatives(foodName:foodName) { status in
+                resolve(bridgePassioFetchPassioAdvisorFoodInfos(status))
+            }
+        }
+    
+     @objc(fetchPossibleIngredients:withResolver:withRejecter:)
+    func fetchPossibleIngredients(
+        foodName:String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock) {
+            
+            sdk.fetchPossibleIngredients(foodName:foodName) { status in
+                resolve(bridgePassioFetchPassioAdvisorFoodInfos(status))
+            }
+        }
+    
 
+    // Nutiriton AI SDK (nutritionAdvisorSDK)
+    
+    @objc(configureAIAdvisor:withResolver:withRejecter:)
+    func configureAIAdvisor(licenceKey:String,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        
+        nutritionAdvisorSDK.configure(licenceKey: licenceKey) { status in
+            switch status {
+            case .success:
+                resolve([
+                    "status": "Success"
+                ])
+            case .failure(let error):
+                resolve([
+                    "status": "Error",
+                    "message": error.errorMessage
+                ])
+            }
+        }
+    }
+    
+    @objc(initConversationAIAdvisor:withRejecter:)
+    func initConversationAIAdvisor(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock) {
+            
+            nutritionAdvisorSDK.initConversation() { status in
+                switch status {
+                case .success:
+                    resolve([
+                        "status": "Success"
+                    ])
+                case .failure(let error):
+                    resolve([
+                        "status": "Error",
+                        "message": error.errorMessage
+                    ])
+                }
+            }
+        }
+    
+    @objc(sendMessageAIAdvisor:withResolver:withRejecter:)
+    func sendMessageAIAdvisor(message:String,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        
+        nutritionAdvisorSDK.sendMessage(message: message) { status in
+            resolve(bridgePassioAdvisorResultResponse(status))
+    
+        }
+    } 
+    
+    @objc(sendImageAIAdvisor:withResolver:withRejecter:)
+    func sendImageAIAdvisor(imageUri: String,
+                   resolve: @escaping RCTPromiseResolveBlock,
+                   reject: @escaping RCTPromiseRejectBlock) {
+        let image = UIImage(contentsOfFile: imageUri)
+        if image == nil {
+            reject("PASSIO-SDK", "no image found", nil)
+        } else {
+            nutritionAdvisorSDK.sendImage(image: image!) { status in
+                resolve(bridgePassioAdvisorResultResponse(status))
+                
+            }
+        }
+    }
+    
+    @objc(fetchIngredientsAIAdvisor:withResolver:withRejecter:)
+    func fetchIngredientsAIAdvisor(response:String,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        
+        nutritionAdvisorSDK.fetchIngridients(from:preparePassioAdvisorResponse(response)!) { status in
+            resolve(bridgePassioAdvisorResultResponse(status))
+    
+        }
+    }
+    
+    
+    
+    
     override var methodQueue: DispatchQueue! {
         .main
     }
 }
 
 private let foodDetectionEventName = "onFoodDetection"
+private let nutritionFactsRecognitionEventName = "NutritionFactsRecognitionListener"
 
 extension PassioSDKBridge: FoodRecognitionDelegate {
     
-    func recognitionResults(candidates: FoodCandidates?, image: UIImage?, nutritionFacts: PassioNutritionFacts?) {
+    func recognitionResults(candidates: FoodCandidates?, image: UIImage?) {
         
         var body: [String: Any] = [:]
         
@@ -352,13 +580,24 @@ extension PassioSDKBridge: FoodRecognitionDelegate {
             body["image"] = bridgeUIImage(image)
         }
         
-        if let nutritionFacts = nutritionFacts,
-           let servingSize = nutritionFacts.servingSizeUnitName,
-           servingSize.count > 0 {
-            body["nutritionFacts"] = bridgeNutritionFacts(nutritionFacts)
+        sendEvent(withName: foodDetectionEventName, body: body)
+    }
+}
+extension PassioSDKBridge: NutritionFactsDelegate {
+    
+    func recognitionResults(nutritionFacts: PassioNutritionFacts?, text: String?) {
+       
+        var body: [String: Any] = [:]
+        
+        if let nutritionFact = nutritionFacts {
+            body["nutritionFacts"] = bridgeNutritionFacts(nutritionFact)
         }
         
-        sendEvent(withName: foodDetectionEventName, body: body)
+        if let textResult = text {
+            body["text"] = textResult
+        }
+        
+        sendEvent(withName: nutritionFactsRecognitionEventName, body: body)
     }
 }
 
@@ -472,12 +711,12 @@ private func bridgeCGRect(_ val: CGRect) -> [String: Any] {
 }
 
 private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] {
-    var body: [String: Any] = [
-        "servingSizeQuantity": val.servingSizeQuantity,
-        "servingSizeUnit": val.servingSizeUnit.rawValue
-    ]
+    var body: [String: Any] = [:]
+    
+    body.addIfPresent(key: "servingSizeQuantity", value: val.servingSizeQuantity)
+    body.addIfPresent(key: "servingSizeUnit", value: val.servingSizeUnit)
+    
     body.addIfPresent(key: "servingSizeUnitName", value: val.servingSizeUnitName)
-    body.addIfPresent(key: "servingSizeGram", value: val.servingSizeGram)
     body.addIfPresent(key: "calories", value: val.calories)
     body.addIfPresent(key: "fat", value: val.fat)
     body.addIfPresent(key: "carbs", value: val.carbs)
@@ -485,10 +724,13 @@ private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] 
     body.addIfPresent(key: "saturatedFat", value: val.saturatedFat)
     body.addIfPresent(key: "transFat", value: val.transFat)
     body.addIfPresent(key: "cholesterol", value: val.cholesterol)
+    body.addIfPresent(key: "sugarAlcohol", value: val.sugarAlcohol)
+    
+    
+    body.addIfPresent(key: "servingSizeGram", value: val.servingSizeGram)
     body.addIfPresent(key: "sodium", value: val.sodium)
     body.addIfPresent(key: "dietaryFiber", value: val.dietaryFiber)
     body.addIfPresent(key: "sugars", value: val.sugars)
-    body.addIfPresent(key: "sugarAlcohol", value: val.sugarAlcohol)
     return body
 }
 
@@ -647,6 +889,64 @@ private func bridgePassioMealPlanItem(_ val: PassioMealPlanItem) -> [String: Any
     return body
 }
 
+private func bridgePassioAdvisorResponse(_ val: PassioAdvisorResponse) -> [String: Any] {
+    var body: [String: Any] = [:]
+    body.addIfPresent(key: "messageId", value: val.messageId)
+    body.addIfPresent(key: "rawContent", value: val.rawContent)
+    body.addIfPresent(key: "markupContent", value: val.markupContent)
+    
+    if let tools = val.tools, tools.count > 0 {
+        body["tools"] = tools.map(bridgeStringArray)
+    }
+    
+    if let extractedIngredients = val.extractedIngredients, extractedIngredients.count > 0 {
+        body["extractedIngredients"] = extractedIngredients.map(bridgePassioAdvisorFoodInfo)
+    }
+    
+    return body
+}
+
+private func bridgePassioAdvisorResultResponse(_ status: Result<PassioAdvisorResponse, NetworkError>) -> [String: Any] {
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+            body.addIfPresent(key: "response", value: try bridgePassioAdvisorResponse(status.get()))
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+        body.addIfPresent(key: "message", value: error.errorMessage)
+    }
+    return body
+}
+
+private func bridgePassioFetchPassioAdvisorFoodInfos(_ status: Result<[PassioAdvisorFoodInfo], NetworkError>) -> [String: Any] {
+    
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+            
+            
+            body.addIfPresent(key: "response", value: try status.get().map(bridgePassioAdvisorFoodInfo))
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+        body.addIfPresent(key: "message", value: error.errorMessage)
+    }
+    return body
+}
+
 
 fileprivate extension Dictionary {
     
@@ -791,11 +1091,40 @@ private func   bridgePassioFoodDataInfo(_ val: PassioFoodDataInfo) -> [String: A
     body.addIfPresent(key:"score", value:  val.score)
     body.addIfPresent(key:"scoredName", value:  val.scoredName)
     body.addIfPresent(key:"type", value:  val.type)
-    body.addIfPresent(key:"useShortName", value:  val.isShortName)
+    body.addIfPresent(key:"isShortName", value:  val.isShortName)
     
     //Not include in android
     // Not include in IOS
     //body.addIfPresent(key:"foodName", value:   val.foodName)
+  return body
+}
+
+
+private func   bridgePassioSpeechRecognitionModel(_ val: PassioSpeechRecognitionModel) -> [String: Any?] {
+    var body = [String: Any?]()
+    
+    body.addIfPresent(key:"date", value:  val.date)
+    
+    if let mealTime = val.meal?.rawValue{
+       body.addIfPresent(key:"mealTime", value:  mealTime.lowercased())
+    }
+    
+    if let action = val.action?.rawValue{
+       body.addIfPresent(key:"action", value:  action.lowercased())
+    }
+    
+    body.addIfPresent(key:"advisorInfo", value:  bridgePassioAdvisorFoodInfo(val.advisorFoodInfo))
+  return body
+}
+
+private func   bridgePassioAdvisorFoodInfo(_ val: PassioAdvisorFoodInfo) -> [String: Any?] {
+    var body = [String: Any?]()
+    
+    body.addIfPresent(key:"portionSize", value:  val.portionSize)
+    body.addIfPresent(key:"weightGrams", value:  val.weightGrams)
+    body.addIfPresent(key:"recognisedName", value:  val.recognisedName)
+    body.addIfPresent(key:"foodDataInfo", value:  bridgePassioFoodDataInfo(val.foodDataInfo))
+ 
   return body
 }
 
@@ -871,7 +1200,7 @@ private func preparePassioFoodDataInfo(_ json: String) -> PassioFoodDataInfo? {
         if let json = json.data(using: String.Encoding.utf8){
             if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
               
-                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["useShortName"] as? Bool) ?? true)
+                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["isShortName"] as? Bool) ?? true)
                 
             }else{
                 return nil
@@ -885,6 +1214,23 @@ private func preparePassioFoodDataInfo(_ json: String) -> PassioFoodDataInfo? {
     }
     
    
+}
+
+private func preparePassioAdvisorResponse(_ json: String) -> PassioAdvisorResponse? {
+    
+    
+    if let jsonData = json.data(using: .utf8) {
+        do {
+            // Decode the JSON data into PassioAdvisorResponse
+            let response = try JSONDecoder().decode(PassioAdvisorResponse.self, from: jsonData)
+            return response
+        } catch {
+            return nil
+        }
+    } else {
+        return nil
+    }
+    
 }
 
 

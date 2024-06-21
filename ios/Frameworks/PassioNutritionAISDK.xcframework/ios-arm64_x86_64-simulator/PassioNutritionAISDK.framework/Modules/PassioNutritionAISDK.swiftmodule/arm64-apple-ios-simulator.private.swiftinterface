@@ -1,7 +1,6 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.9.2 (swiftlang-5.9.2.2.56 clang-1500.1.0.2.5)
-// swift-module-flags: -target arm64-apple-ios13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name PassioNutritionAISDK
-// swift-module-flags-ignorable: -enable-bare-slash-regex
+// swift-compiler-version: Apple Swift version 5.10 (swiftlang-5.10.0.13 clang-1500.3.9.4)
+// swift-module-flags: -target arm64-apple-ios13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name PassioNutritionAISDK
 import AVFoundation
 import Accelerate
 import CommonCrypto
@@ -29,8 +28,9 @@ public enum CapturingDeviceType : Swift.CaseIterable {
   case builtInDualCamera
   case builtInDualWideCamera
   case builtInTripleCamera
-  public static func supportedDeviceTypes() -> [PassioNutritionAISDK.CapturingDeviceType]
+  public static func supportedDeviceTypes(for position: AVFoundation.AVCaptureDevice.Position = .unspecified, preset: AVFoundation.AVCaptureSession.Preset = .high) -> [PassioNutritionAISDK.CapturingDeviceType]
   public static func defaultCapturing() -> PassioNutritionAISDK.CapturingDeviceType
+  public static func getCapturingDeviceForPhotos(for position: AVFoundation.AVCaptureDevice.Position = .back, preset: AVFoundation.AVCaptureSession.Preset = .photo) -> PassioNutritionAISDK.CapturingDeviceType
   public static func == (a: PassioNutritionAISDK.CapturingDeviceType, b: PassioNutritionAISDK.CapturingDeviceType) -> Swift.Bool
   public func hash(into hasher: inout Swift.Hasher)
   public typealias AllCases = [PassioNutritionAISDK.CapturingDeviceType]
@@ -119,7 +119,7 @@ public class PassioMetadataService {
 public class PassioNutritionFacts {
   public init()
   public enum ServingSizeUnit : Swift.String {
-    case g, ml, mg
+    case g, ml, mg, mcg
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
@@ -143,6 +143,11 @@ public class PassioNutritionFacts {
   final public let titleTotalSugars: Swift.String
   final public let titleSugarAlcohol: Swift.String
   final public let titleIngredients: Swift.String
+  public var titleAddedSugar: Swift.String
+  public var titleVitaminD: Swift.String
+  public var titleCalcium: Swift.String
+  public var titleIron: Swift.String
+  public var titlePotassium: Swift.String
   public var servingSizeQuantity: Swift.Double
   public var servingSizeUnitName: Swift.String?
   public var servingSizeGram: Swift.Double?
@@ -159,6 +164,12 @@ public class PassioNutritionFacts {
   public var sugars: Swift.Double?
   public var sugarAlcohol: Swift.Double?
   public var ingredients: Swift.String?
+  public var totalSugars: Swift.Double?
+  public var addedSugar: Swift.Double?
+  public var vitaminD: Swift.Double?
+  public var calcium: Swift.Double?
+  public var iron: Swift.Double?
+  public var potassium: Swift.Double?
   public var isManuallyEdited: Swift.Bool
   public var servingSizeText: Swift.String {
     get
@@ -196,6 +207,24 @@ public class PassioNutritionFacts {
   public var sugarAlcoholText: Swift.String {
     get
   }
+  public var totalSugarsText: Swift.String {
+    get
+  }
+  public var addedSugarText: Swift.String {
+    get
+  }
+  public var vitaminDText: Swift.String {
+    get
+  }
+  public var calciumText: Swift.String {
+    get
+  }
+  public var ironText: Swift.String {
+    get
+  }
+  public var potassiumText: Swift.String {
+    get
+  }
   public var isCompleted: Swift.Bool {
     get
   }
@@ -206,7 +235,7 @@ public class PassioNutritionFacts {
   @objc deinit
 }
 extension PassioNutritionAISDK.PassioNutritionFacts {
-  public func fromNutritionFacts(foodName: Swift.String) -> PassioNutritionAISDK.PassioFoodItem
+  public func fromNutritionFacts(foodName: Swift.String, brand: Swift.String = "") -> PassioNutritionAISDK.PassioFoodItem
 }
 public struct PassioSearchNutritionPreview : Swift.Codable {
   public var calories: Swift.Int
@@ -243,6 +272,20 @@ public struct PassioIDAndName : Swift.Codable {
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
+public enum NetworkError : Swift.Error {
+  case decode
+  case invalidURL
+  case noResponse
+  case unauthorized
+  case badRequest
+  case unexpectedStatusCode
+  case serverError
+  case custom(Swift.String)
+  case adivsorError(type: Swift.String, error: Swift.String)
+  public var errorMessage: Swift.String {
+    get
+  }
+}
 public struct InflammatoryEffectData : Swift.Codable {
   public let name: Swift.String
   public let amount: Swift.Double
@@ -251,6 +294,9 @@ public struct InflammatoryEffectData : Swift.Codable {
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
+public typealias NutritionAdvisorStatus = (Swift.Result<Swift.Bool, PassioNutritionAISDK.NetworkError>) -> Swift.Void
+public typealias NutritionAdvisorResponse = (Swift.Result<PassioNutritionAISDK.PassioAdvisorResponse, PassioNutritionAISDK.NetworkError>) -> Swift.Void
+public typealias NutritionAdvisorIngredientsResponse = (Swift.Result<[PassioNutritionAISDK.PassioAdvisorFoodInfo], PassioNutritionAISDK.NetworkError>) -> Swift.Void
 extension Swift.Array {
   public subscript(index: Swift.Int, default defaultValue: @autoclosure () -> Element) -> Element {
     get
@@ -292,6 +338,7 @@ extension Swift.Array {
   public func configure(passioConfiguration: PassioNutritionAISDK.PassioConfiguration, completion: @escaping (PassioNutritionAISDK.PassioStatus) -> Swift.Void)
   public func shutDownPassioSDK()
   public func startFoodDetection(detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), foodRecognitionDelegate: any PassioNutritionAISDK.FoodRecognitionDelegate, capturingDeviceType: PassioNutritionAISDK.CapturingDeviceType = .defaultCapturing(), completion: @escaping (Swift.Bool) -> Swift.Void)
+  public func startNutritionFactsDetection(nutritionfactsDelegate: (any PassioNutritionAISDK.NutritionFactsDelegate)?, capturingDeviceType: PassioNutritionAISDK.CapturingDeviceType = .defaultCapturing(), completion: @escaping (Swift.Bool) -> Swift.Void)
   public func stopFoodDetection()
   public func detectFoodIn(image: UIKit.UIImage, detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), slicingRects: [CoreFoundation.CGRect]? = nil, completion: @escaping ((any PassioNutritionAISDK.FoodCandidates)?) -> Swift.Void)
   public func detectBarcodesIn(image: UIKit.UIImage, completion: @escaping ([any PassioNutritionAISDK.BarcodeCandidate]) -> Swift.Void)
@@ -315,6 +362,7 @@ extension Swift.Array {
   public func fetchMealPlans(completion: @escaping ([PassioNutritionAISDK.PassioMealPlan]) -> Swift.Void)
   public func fetchMealPlanForDay(mealPlanLabel: Swift.String, day: Swift.Int, completion: @escaping ([PassioNutritionAISDK.PassioMealPlanItem]) -> Swift.Void)
   public func fetchFoodItemFor(productCode: Swift.String, completion: @escaping ((PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void))
+  public func fetchFoodItemLegacy(from passioID: PassioNutritionAISDK.PassioID, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
   public func lookupIconsFor(passioID: PassioNutritionAISDK.PassioID, size: PassioNutritionAISDK.IconSize = IconSize.px90, entityType: PassioNutritionAISDK.PassioIDEntityType = .item) -> (placeHolderIcon: UIKit.UIImage, icon: UIKit.UIImage?)
   public func fetchIconFor(passioID: PassioNutritionAISDK.PassioID, size: PassioNutritionAISDK.IconSize = IconSize.px90, completion: @escaping (UIKit.UIImage?) -> Swift.Void)
   public func iconURLFor(passioID: PassioNutritionAISDK.PassioID, size: PassioNutritionAISDK.IconSize = IconSize.px90) -> Foundation.URL?
@@ -328,6 +376,12 @@ extension Swift.Array {
   }
   @available(iOS 15.0, *)
   public func setMLComputeUnits(units: CoreML.MLComputeUnits)
+  public func recognizeSpeechRemote(from text: Swift.String, completion: @escaping ([PassioNutritionAISDK.PassioSpeechRecognitionModel]) -> Swift.Void)
+  public func recognizeImageRemote(image: UIKit.UIImage, resolution: PassioNutritionAISDK.PassioImageResolution = .res_512, message: Swift.String? = nil, completion: @escaping ([PassioNutritionAISDK.PassioAdvisorFoodInfo]) -> Swift.Void)
+  public func detectFoodWithText(image: UIKit.UIImage, detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), completion: @escaping ((any PassioNutritionAISDK.FoodCandidatesWithText)?) -> Swift.Void)
+  public func fetchHiddenIngredients(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
+  public func fetchVisualAlternatives(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
+  public func fetchPossibleIngredients(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
   @objc deinit
 }
 extension PassioNutritionAISDK.PassioNutritionAI : PassioNutritionAISDK.PassioStatusDelegate {
@@ -338,7 +392,8 @@ extension PassioNutritionAISDK.PassioNutritionAI : PassioNutritionAISDK.PassioSt
   public func passioProcessing(filesLeft: Swift.Int)
 }
 extension PassioNutritionAISDK.PassioNutritionAI {
-  public func detectFoodWithText(image: UIKit.UIImage, detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), completion: @escaping ((any PassioNutritionAISDK.FoodCandidatesWithText)?) -> Swift.Void)
+  public func getSupportedDevice(for position: AVFoundation.AVCaptureDevice.Position = .unspecified, preset: AVFoundation.AVCaptureSession.Preset = .high) -> [PassioNutritionAISDK.CapturingDeviceType]
+  public func setCapturingDevice(capturingDevice: PassioNutritionAISDK.CapturingDeviceType)
 }
 public struct PassioFoodMetadata : Swift.Codable {
   public var foodOrigins: [PassioNutritionAISDK.PassioFoodOrigin]?
@@ -671,10 +726,9 @@ public struct FoodDetectionConfiguration {
   public var volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode
   public var detectBarcodes: Swift.Bool
   public var detectPackagedFood: Swift.Bool
-  public var detectNutritionFacts: Swift.Bool
   public var sessionPreset: AVFoundation.AVCaptureSession.Preset
   public var framesPerSecond: PassioNutritionAISDK.PassioNutritionAI.FramesPerSecond
-  public init(detectVisual: Swift.Bool = true, volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode = .none, detectBarcodes: Swift.Bool = false, detectPackagedFood: Swift.Bool = false, nutritionFacts: Swift.Bool = false)
+  public init(detectVisual: Swift.Bool = true, volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode = .none, detectBarcodes: Swift.Bool = false, detectPackagedFood: Swift.Bool = false)
 }
 public enum VolumeDetectionMode : Swift.String, Swift.CaseIterable {
   case auto
@@ -754,7 +808,10 @@ public struct ResponseIngredient : Swift.Codable {
   public func encode(to encoder: any Swift.Encoder) throws
 }
 public protocol FoodRecognitionDelegate : AnyObject {
-  func recognitionResults(candidates: (any PassioNutritionAISDK.FoodCandidates)?, image: UIKit.UIImage?, nutritionFacts: PassioNutritionAISDK.PassioNutritionFacts?)
+  func recognitionResults(candidates: (any PassioNutritionAISDK.FoodCandidates)?, image: UIKit.UIImage?)
+}
+public protocol NutritionFactsDelegate : AnyObject {
+  func recognitionResults(nutritionFacts: PassioNutritionAISDK.PassioNutritionFacts?, text: Swift.String?)
 }
 public protocol BarcodeDetectionDelegate : AnyObject {
   func barcodeResult(barcodes: [any PassioNutritionAISDK.BarcodeCandidate])
@@ -864,14 +921,6 @@ public enum IconSize : Swift.String {
 }
 extension UIKit.UIImageView {
   @_Concurrency.MainActor(unsafe) public func loadPassioIconBy(passioID: PassioNutritionAISDK.PassioID, entityType: PassioNutritionAISDK.PassioIDEntityType, size: PassioNutritionAISDK.IconSize = .px90, completion: @escaping (PassioNutritionAISDK.PassioID, UIKit.UIImage) -> Swift.Void)
-}
-public enum SDKLanguage : Swift.String {
-  case en, de, auto
-  public init?(rawValue: Swift.String)
-  public typealias RawValue = Swift.String
-  public var rawValue: Swift.String {
-    get
-  }
 }
 public struct PassioFoodAmount : Swift.Codable {
   public let servingSizes: [PassioNutritionAISDK.PassioServingSize]
@@ -1113,6 +1162,48 @@ public struct PassioFoodRecipe : Swift.Equatable, Swift.Codable {
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
+public struct PassioAdvisorResponse : Swift.Codable {
+  public var messageId: Swift.String
+  public var markupContent: Swift.String
+  public var rawContent: Swift.String
+  public var tools: [Swift.String]?
+  public var extractedIngredients: [PassioNutritionAISDK.PassioAdvisorFoodInfo]?
+  public init?(message: PassioNutritionAISDK.NAMessage?)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct NAMessage : Swift.Codable {
+  public var threadId: Swift.String
+  public var messageId: Swift.String
+  public var content: Swift.String
+  public var actionResponse: PassioNutritionAISDK.NAActionResponse?
+  public var contentToolHints: [Swift.String]?
+  public init(threadId: Swift.String, messageId: Swift.String, content: Swift.String, actionResponse: PassioNutritionAISDK.NAActionResponse? = nil, contentToolHints: [Swift.String]? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct NAActionResponse : Swift.Codable {
+  public var messageId: Swift.String?
+  public var name: Swift.String?
+  public var data: Swift.String?
+  public var extractedIngridient: [PassioNutritionAISDK.PassioAdvisorFoodInfo]? {
+    get
+  }
+  public init(messageId: Swift.String? = nil, name: Swift.String? = nil, data: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+@_hasMissingDesignatedInitializers public class NutritionAdvisor {
+  public class var shared: PassioNutritionAISDK.NutritionAdvisor {
+    get
+  }
+  public func configure(licenceKey: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorStatus)
+  public func initConversation(completion: @escaping PassioNutritionAISDK.NutritionAdvisorStatus)
+  public func sendMessage(message: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorResponse)
+  public func sendImage(image: UIKit.UIImage, completion: @escaping PassioNutritionAISDK.NutritionAdvisorResponse)
+  public func fetchIngridients(from advisorResponse: PassioNutritionAISDK.PassioAdvisorResponse, completion: @escaping PassioNutritionAISDK.NutritionAdvisorResponse)
+  @objc deinit
+}
 public enum PassioMealTime : Swift.String, Swift.Codable {
   case breakfast
   case lunch
@@ -1121,6 +1212,44 @@ public enum PassioMealTime : Swift.String, Swift.Codable {
   public static func currentMealTime() -> PassioNutritionAISDK.PassioMealTime
   public init?(rawValue: Swift.String)
   public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PassioImageResolution {
+  case res_512
+  case res_1080
+  case full
+  public static func == (a: PassioNutritionAISDK.PassioImageResolution, b: PassioNutritionAISDK.PassioImageResolution) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PassioSpeechRecognitionModel {
+  public let action: PassioNutritionAISDK.PassioLogAction?
+  public let meal: PassioNutritionAISDK.PassioMealTime?
+  public let date: Swift.String!
+  public let advisorFoodInfo: PassioNutritionAISDK.PassioAdvisorFoodInfo
+}
+public struct PassioAdvisorFoodInfo : Swift.Codable {
+  public let recognisedName: Swift.String
+  public let portionSize: Swift.String
+  public let weightGrams: Swift.Double
+  public let foodDataInfo: PassioNutritionAISDK.PassioFoodDataInfo
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public enum PassioLogAction : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case add
+  case remove
+  case none
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [PassioNutritionAISDK.PassioLogAction]
+  public typealias RawValue = Swift.String
+  public static var allCases: [PassioNutritionAISDK.PassioLogAction] {
+    get
+  }
   public var rawValue: Swift.String {
     get
   }
@@ -1150,9 +1279,6 @@ extension PassioNutritionAISDK.VolumeDetectionMode : Swift.RawRepresentable {}
 extension PassioNutritionAISDK.IconSize : Swift.Equatable {}
 extension PassioNutritionAISDK.IconSize : Swift.Hashable {}
 extension PassioNutritionAISDK.IconSize : Swift.RawRepresentable {}
-extension PassioNutritionAISDK.SDKLanguage : Swift.Equatable {}
-extension PassioNutritionAISDK.SDKLanguage : Swift.Hashable {}
-extension PassioNutritionAISDK.SDKLanguage : Swift.RawRepresentable {}
 extension PassioNutritionAISDK.PassioMode : Swift.Equatable {}
 extension PassioNutritionAISDK.PassioMode : Swift.Hashable {}
 extension PassioNutritionAISDK.Bridge : Swift.Equatable {}
@@ -1161,3 +1287,8 @@ extension PassioNutritionAISDK.Bridge : Swift.RawRepresentable {}
 extension PassioNutritionAISDK.PassioMealTime : Swift.Equatable {}
 extension PassioNutritionAISDK.PassioMealTime : Swift.Hashable {}
 extension PassioNutritionAISDK.PassioMealTime : Swift.RawRepresentable {}
+extension PassioNutritionAISDK.PassioImageResolution : Swift.Equatable {}
+extension PassioNutritionAISDK.PassioImageResolution : Swift.Hashable {}
+extension PassioNutritionAISDK.PassioLogAction : Swift.Equatable {}
+extension PassioNutritionAISDK.PassioLogAction : Swift.Hashable {}
+extension PassioNutritionAISDK.PassioLogAction : Swift.RawRepresentable {}

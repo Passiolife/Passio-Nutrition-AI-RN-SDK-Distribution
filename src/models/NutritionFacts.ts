@@ -6,7 +6,6 @@ import type { ServingSizeUnit } from '.'
 export interface NutritionFacts {
   servingSizeQuantity?: number
   servingSizeUnitName?: string
-  servingSizeGram?: number
   servingSizeUnit: ServingSizeUnit
   calories?: number
   fat?: number
@@ -15,8 +14,9 @@ export interface NutritionFacts {
   saturatedFat?: number
   transFat?: number
   cholesterol?: number
-  sodium?: number
-  dietaryFiber?: number
   sugars?: number
   sugarAlcohol?: number
+  servingSizeGram?: number
+  dietaryFiber?: number
+  sodium?: number
 }

@@ -5,6 +5,7 @@ import ai.passio.passiosdk.core.config.PassioConfiguration
 import ai.passio.passiosdk.core.config.PassioMode
 import ai.passio.passiosdk.core.config.PassioStatus
 import ai.passio.passiosdk.passiofood.*
+import ai.passio.passiosdk.passiofood.data.model.PassioResult
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
 import android.content.Context
 import android.graphics.Bitmap
@@ -16,21 +17,26 @@ import bridgeBitmap
 import bridgeFoodCandidates
 import bridgeInflammatoryEffectData
 import bridgeNutritionFacts
+import bridgePassioAdvisorFoodInfo
+import bridgePassioAdvisorResultResponse
 import bridgePassioMealPlan
 import bridgePassioMealPlanItem
+import bridgePassioResultPassioAdvisorFoodInfos
+import bridgePassioSpeechRecognitionModel
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 import mapBridged
 import mapNullable
 import mapStringArray
 import mapToStringArray
 import putIfNotNull
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
 
 class PassioSDKBridge(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), FoodRecognitionListener {
+  ReactContextBaseJavaModule(reactContext), FoodRecognitionListener,
+  NutritionFactsRecognitionListener {
 
   override fun getName() = "PassioSDKBridge"
 
@@ -115,17 +121,22 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     }
   }
 
+  private fun sentConfigureModeStatusEvent(args: ReadableMap) {
+    val emitter =
+      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+    emitter.emit("onPassioStatusChanged", args)
+  }
+
+
   @ReactMethod
   fun startFoodDetection(
     detectBarcodes: Boolean,
     detectPackagedFood: Boolean,
-    detectNutritionFacts: Boolean,
   ) {
     mainHandler.post {
       val config = FoodDetectionConfiguration(
         detectBarcodes = detectBarcodes,
         detectVisual = true,
-        detectNutritionFacts = detectNutritionFacts,
         detectPackagedFood = detectPackagedFood
       )
       // The function will return false if the registration of the ```foodRecognitionListener``` failed.
@@ -137,6 +148,18 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   fun stopFoodDetection() {
     // The function will return false if the unregistration of the current ```foodRecognitionListener``` failed.
     PassioSDK.instance.stopFoodDetection()
+  }
+
+  @ReactMethod
+  fun startNutritionFactsDetection() {
+    mainHandler.post {
+      PassioSDK.instance.startNutritionFactsDetection(this)
+    }
+  }
+
+  @ReactMethod
+  fun stopNutritionFactsDetection() {
+    PassioSDK.instance.stopNutritionFactsDetection()
   }
 
   @ReactMethod
@@ -159,6 +182,13 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     }
   }
 
+  @ReactMethod
+  fun fetchFoodItemLegacy(passioID: String, promise: Promise) {
+    PassioSDK.instance.fetchFoodItemLegacy(passioID) { attributes ->
+      val mapped = mapNullable(attributes, ::bridgePassioFoodItem)
+      promise.resolve(mapped)
+    }
+  }
 
   @ReactMethod
   fun fetchSuggestions(mealTime: String, promise: Promise) {
@@ -186,7 +216,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun fetchFoodItemForDataInfo(searchQuery: ReadableMap, promise: Promise) {
     PassioSDK.instance.fetchFoodItemForDataInfo(
-      searchResult = bridgeSearchQuery(searchQuery),
+      searchResult = bridgePassioFoodDataInfoQuery(searchQuery),
       callback = { item ->
         if (item !== null) {
           promise.resolve(bridgePassioFoodItem(item))
@@ -223,7 +253,7 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun fetchMealPlanForDay(
     mealPlanLabel: String,
-    day: Int, promise: Promise
+    day: Int, promise: Promise,
   ) {
     PassioSDK.instance.fetchMealPlanForDay(
       mealPlanLabel = mealPlanLabel,
@@ -260,7 +290,6 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     val config = FoodDetectionConfiguration(
       detectBarcodes = true,
       detectVisual = true,
-      detectNutritionFacts = true,
       detectPackagedFood = true
     )
     val imageBitmap = loadBitmapFromCache(reactApplicationContext.applicationContext, imageUri, "")
@@ -275,6 +304,138 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
           promise.resolve(map)
         }
       })
+    }
+  }
+
+  @ReactMethod
+  fun recognizeImageRemote(imageUri: String,resolution: String, promise: Promise) {
+    val imageBitmap = loadBitmapFromCache(reactApplicationContext.applicationContext, imageUri, "")
+    if (imageBitmap == null) {
+      promise.reject(Throwable("no image found"))
+    } else {
+      PassioSDK.instance.recognizeImageRemote(imageBitmap,resolution=PassioImageResolution.valueOf(resolution)) { passioAdvisorFoodInfo ->
+        val array = WritableNativeArray()
+        for (item in passioAdvisorFoodInfo) {
+          array.pushMap(bridgePassioAdvisorFoodInfo(item))
+        }
+        promise.resolve(array)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun recognizeSpeechRemote(text: String, promise: Promise) {
+    PassioSDK.instance.recognizeSpeechRemote(text) { passioSpeechRecognitionModel ->
+      val array = WritableNativeArray()
+      for (item in passioSpeechRecognitionModel) {
+        array.pushMap(bridgePassioSpeechRecognitionModel(item))
+      }
+      promise.resolve(array)
+    }
+  }
+
+  @ReactMethod
+  fun fetchHiddenIngredients(foodName: String, promise: Promise) {
+    PassioSDK.instance.fetchHiddenIngredients(foodName) { result ->
+      promise.resolve(bridgePassioResultPassioAdvisorFoodInfos(result))
+    }
+  }
+
+  @ReactMethod
+  fun fetchVisualAlternatives(foodName: String, promise: Promise) {
+    PassioSDK.instance.fetchVisualAlternatives(foodName) { result ->
+      promise.resolve(bridgePassioResultPassioAdvisorFoodInfos(result))
+    }
+  }
+
+  @ReactMethod
+  fun fetchPossibleIngredients(foodName: String, promise: Promise) {
+    PassioSDK.instance.fetchPossibleIngredients(foodName) { result ->
+      promise.resolve(bridgePassioResultPassioAdvisorFoodInfos(result))
+    }
+  }
+
+
+  // AI Advisor
+  @ReactMethod
+  fun configureAIAdvisor(
+    licenseKey: String,
+    promise: Promise
+  ) {
+    NutritionAdvisor.instance.configure (reactApplicationContext,licenseKey) { result ->
+      val map = WritableNativeMap()
+      when (result) {
+        is PassioResult.Success -> {
+          map.putString("status", "Success")
+          promise.resolve(map)
+        }
+
+        is PassioResult.Error -> {
+          map.putString("status", "Error")
+          map.putIfNotNull("message", result.message)
+          promise.resolve(map)
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  fun initConversationAIAdvisor(promise: Promise) {
+    NutritionAdvisor.instance.initConversation () { result ->
+      val map = WritableNativeMap()
+      when (result) {
+        is PassioResult.Success -> {
+          map.putString("status", "Success")
+          promise.resolve(map)
+        }
+
+        is PassioResult.Error -> {
+          map.putString("status", "Error")
+          map.putIfNotNull("message", result.message)
+          promise.resolve(map)
+        }
+      }
+    }
+  }
+
+
+  @ReactMethod
+  fun sendMessageAIAdvisor(
+    message: String,
+    promise: Promise,
+  ) {
+    NutritionAdvisor.instance.sendMessage(message) { result ->
+      promise.resolve(bridgePassioAdvisorResultResponse(result))
+    }
+  }
+
+  @ReactMethod
+  fun sendImageAIAdvisor(
+    imageURI: String,
+    promise: Promise,
+  ) {
+
+    try{
+      val imageBitmap = loadBitmapFromCache(reactApplicationContext.applicationContext, imageURI, "")
+      if (imageBitmap == null) {
+        promise.reject(Throwable("no image found"))
+      } else {
+        NutritionAdvisor.instance.sendImage(imageBitmap) { result ->
+          promise.resolve(bridgePassioAdvisorResultResponse(result))
+        }
+      }
+    }catch (error:Error){
+      promise.reject(Throwable(error.message))
+    }
+
+  }
+  @ReactMethod
+  fun fetchIngredientsAIAdvisor(
+    response: ReadableMap,
+    promise: Promise,
+  ) {
+    NutritionAdvisor.instance.fetchIngredients(bridgePassioAdvisorResponseQuery(response)) { result ->
+      promise.resolve(bridgePassioAdvisorResultResponse(result))
     }
   }
 
@@ -295,11 +456,18 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     emitter.emit("onFoodDetection", args)
   }
 
+  private fun sendNutritionFactsRecognitionListener(args: ReadableMap) {
+    val emitter =
+      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+    emitter.emit("NutritionFactsRecognitionListener", args)
+  }
+
   private fun sendCompletedDownloadingFileEvent(args: ReadableMap) {
     val emitter =
       reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
     emitter.emit("completedDownloadingFile", args)
   }
+
 
   private fun sendDownloadingErrorEvent(args: ReadableMap) {
     val emitter =
@@ -325,20 +493,26 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   override fun onRecognitionResults(
     candidates: FoodCandidates?,
     image: Bitmap?,
-    nutritionFacts: PassioNutritionFacts?,
   ) {
     val event = WritableNativeMap()
-
     event.putMap("candidates", bridgeFoodCandidates(candidates))
-
     if (image != null) {
       event.putMap("image", bridgeBitmap(image))
     }
+    sendDetectionEvent(event)
+  }
 
+  override fun onRecognitionResult(nutritionFacts: PassioNutritionFacts?, text: String) {
+    val event = WritableNativeMap()
     if (nutritionFacts != null) {
       event.putMap("nutritionFacts", bridgeNutritionFacts(nutritionFacts))
     }
+    event.putIfNotNull("text", text)
 
-    sendDetectionEvent(event)
+    if(nutritionFacts !== null || text.isNotEmpty()){
+      sendNutritionFactsRecognitionListener(event)
+    }
   }
+
 }
+

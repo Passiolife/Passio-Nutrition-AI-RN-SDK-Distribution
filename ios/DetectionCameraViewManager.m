@@ -22,6 +22,8 @@
 
 RCT_EXPORT_MODULE()
 
+RCT_EXPORT_VIEW_PROPERTY(config,  NSDictionary*)
+
 - (UIView *) view {
   DetectionCameraView *view = [[DetectionCameraView alloc] initWithFrame:CGRectZero];
   return view;

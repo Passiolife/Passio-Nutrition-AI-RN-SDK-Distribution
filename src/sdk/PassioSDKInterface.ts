@@ -5,6 +5,10 @@ import type {
   PassioMealTime,
   PassioMealPlan,
   PassioMealPlanItem,
+  PassioSpeechRecognitionModel,
+  PassioAdvisorFoodInfo,
+  PassioImageResolution,
+  PassioFetchAdvisorInfoResult,
 } from '..'
 import type {
   Barcode,
@@ -21,6 +25,7 @@ import type {
   UnitMass,
   RefCode,
   DetectedCandidate,
+  NutritionDetectionEvent,
 } from '../models'
 
 export interface PassioSDKInterface {
@@ -51,6 +56,16 @@ export interface PassioSDKInterface {
   ): Subscription
 
   /**
+   * Begin nutrition fact label detection using the device's camera.
+   * @param callback - A callback to repeatedly receive nutrition detection events as they occur.
+   * @returns A `Subscription` that should be retained by the caller while nutrition detection is running. Call `remove` on the subscription to terminate nutrition detection.
+   * NOTE: IOS:  <DetectionCameraView style={styles.detectionCamera} volumeDetectionMode='none' />
+   */
+  startNutritionFactsDetection(
+    callback: (detection: NutritionDetectionEvent) => void
+  ): Subscription
+
+  /**
    * Look up the food item result for a given Passio ID.
    * @param passioID - The Passio ID for the  query.
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
@@ -76,11 +91,11 @@ export interface PassioSDKInterface {
   ): Promise<PassioFoodItem | null>
 
   /**
-   * Search the database of foods with a given search term.
-   * @param searchQuery - The search term to match against food item names.
-   * @returns A `Promise` resolving to an array of food item names.
+   * Fetch PassioFoodItem for a v2 PassioID
+   * @param passioID  - passioID for the query.
+   * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
    */
-  searchForFood(searchQuery: string): Promise<PassioSearchResult | null>
+  fetchFoodItemLegacy(passioID: PassioID): Promise<PassioFoodItem | null>
 
   /**
    * Data info of the search food with a given search result.
@@ -90,6 +105,42 @@ export interface PassioSDKInterface {
   fetchFoodItemForDataInfo(
     passioFoodDataInfo: PassioFoodDataInfo
   ): Promise<PassioFoodItem | null>
+
+  /**
+   * this method to fetch PassioAdvisorFoodInfo using Image (local image uri)
+   * @param imageUri - The image uri for recognizing Food.
+   * @returns A `Promise` resolving to a `PassioAdvisorFoodInfo` array or `null`.
+   */
+
+  /**
+   * Search the database of foods with a given search term.
+   * @param searchQuery - The search term to match against food item names.
+   * @returns A `Promise` resolving to an array of food item names.
+   */
+  searchForFood(searchQuery: string): Promise<PassioSearchResult | null>
+
+  /**
+   * Retrieving food info using image uri,
+   * Smaller resolutions will result in faster response times
+   * while higher resolutions should provide more accurate results
+   * @param imageUri - local image uri.
+   * @param resolution - enables the caller to set the target resolution of the image uploaded to the server
+   * @returns A `Promise` resolving to an array of `PassioAdvisorFoodInfo`.
+   */
+
+  recognizeImageRemote(
+    imageUri: string,
+    resolution?: PassioImageResolution
+  ): Promise<PassioAdvisorFoodInfo[] | null>
+
+  /**
+   * Use this method to fetch PassioSpeechRecognitionModel using speech.
+   * @param text - Text for recognizing food logging actions
+   * @returns A `Promise` resolving to `PassioSpeechRecognitionModel` list.
+   */
+  recognizeSpeechRemote(
+    text: string
+  ): Promise<PassioSpeechRecognitionModel[] | null>
 
   /**
    * This method indicating downloading file status if model download from passio server.
@@ -188,6 +239,33 @@ export interface PassioSDKInterface {
     mealPlanLabel: string,
     day: number
   ): Promise<PassioMealPlanItem[] | null>
+
+  /**
+   * fetch list of possible hidden ingredients for a given food name.
+   * @param foodName - query for foodName.
+   * @returns A `Promise` resolving to a `PassioFetchAdvisorInfoResult`.
+   */
+  fetchHiddenIngredients(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult>
+
+  /**
+   * fetch list of possible visual alternatives for a given food name.
+   * @param foodName - query for foodName.
+   * @returns A `Promise` resolving to a `PassioFetchAdvisorInfoResult`.
+   */
+  fetchVisualAlternatives(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult>
+
+  /**
+   * fetch list of possible ingredients if a more complex food for a given food name.
+   * @param foodName - query for foodName.
+   * @returns A `Promise` resolving to a `PassioFetchAdvisorInfoResult`.
+   */
+  fetchPossibleIngredients(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult>
 }
 
 /**
