@@ -1,4 +1,4 @@
-import type { FoodCandidates, NutritionFacts } from '.'
+import type { FoodCandidates } from '.'
 
 /**
  * An object provided in the callback for food detection containing
@@ -9,8 +9,4 @@ export interface FoodDetectionEvent {
    * A collection of food candidates detected by the models.
    */
   candidates?: FoodCandidates
-  /**
-   * Detected nutrition facts when scanning a nutrition label.
-   */
-  nutritionFacts?: NutritionFacts
 }

@@ -15,11 +15,19 @@ RCT_EXTERN_METHOD(requestCameraAuthorization:(RCTPromiseResolveBlock)resolve
 
 RCT_EXTERN_METHOD(startFoodDetection:(BOOL)detectBarcodes
                   detectPackagedFood:(BOOL)detectPackagedFood
-                  detectNutritionFacts:(BOOL)detectNutritionFacts)
+                  volumeDetectionMode:(NSString *)volumeDetectionMode)
 
 RCT_EXTERN_METHOD(stopFoodDetection)
 
+RCT_EXTERN_METHOD(stopNutritionFactsDetection)
+
+RCT_EXTERN_METHOD(startNutritionFactsDetection)
+
 RCT_EXTERN_METHOD(fetchFoodItemForPassioID:(NSString *)passioID
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchFoodItemLegacy:(NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
@@ -38,6 +46,12 @@ RCT_EXTERN_METHOD(searchForFood:(NSString *)searchQuery
 
 
 RCT_EXTERN_METHOD(detectFoodFromImageURI: (NSString *)imageUri
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
+RCT_EXTERN_METHOD(recognizeImageRemote: (NSString *)imageUri
+                  resolution: (NSString *)resolution
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
@@ -60,6 +74,10 @@ RCT_EXTERN_METHOD(fetchSuggestions:(NSString *)searchQuery
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(recognizeSpeechRemote:(NSString *)text
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 
 RCT_EXTERN_METHOD(fetchMealPlans:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
@@ -69,5 +87,38 @@ RCT_EXTERN_METHOD(fetchMealPlanForDay:(NSString *)mealPlanLabel
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+
+RCT_EXTERN_METHOD(configureAIAdvisor: (NSString *)licenseKey
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(sendMessageAIAdvisor: (NSString *)message
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(sendImageAIAdvisor: (NSString *)imageUri
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
+RCT_EXTERN_METHOD(initConversationAIAdvisor:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchIngredientsAIAdvisor:(NSString *)response
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
+RCT_EXTERN_METHOD(fetchHiddenIngredients:(NSString *)foodName
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchVisualAlternatives:(NSString *)foodName
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchPossibleIngredients:(NSString *)foodName
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 @end

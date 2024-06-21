@@ -11,6 +11,7 @@
 		8ED4691E25D5C21A00182043 /* DetectionCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED4691C25D5C21A00182043 /* DetectionCameraView.swift */; };
 		8ED4691F25D5C21A00182043 /* DetectionCameraViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 8ED4691D25D5C21A00182043 /* DetectionCameraViewManager.m */; };
 		F4FF95D7245B92E800C19C63 /* PassioSDKBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* PassioSDKBridge.swift */; };
+		F59BF2B0444E7F44C1F78F81 /* Pods_ReactNativePassioSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC44C65B1920036F92DA5126 /* Pods_ReactNativePassioSDK.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,7 +31,10 @@
 		8E08D48325D48B6A00E36A80 /* PassioSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PassioSDK.framework; sourceTree = "<group>"; };
 		8ED4691C25D5C21A00182043 /* DetectionCameraView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetectionCameraView.swift; sourceTree = "<group>"; };
 		8ED4691D25D5C21A00182043 /* DetectionCameraViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DetectionCameraViewManager.m; sourceTree = "<group>"; };
+		9AD1C167216CB36784FE1D29 /* Pods-ReactNativePassioSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativePassioSDK.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativePassioSDK/Pods-ReactNativePassioSDK.debug.xcconfig"; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* PassioSDKBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PassioSDKBridge.m; sourceTree = "<group>"; };
+		DC44C65B1920036F92DA5126 /* Pods_ReactNativePassioSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ReactNativePassioSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE324AC52BDB50397AA1702D /* Pods-ReactNativePassioSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativePassioSDK.release.xcconfig"; path = "Target Support Files/Pods-ReactNativePassioSDK/Pods-ReactNativePassioSDK.release.xcconfig"; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* PassioSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PassioSdk-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* PassioSDKBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassioSDKBridge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,12 +45,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E08D48425D48B6A00E36A80 /* PassioSDK.framework in Frameworks */,
+				F59BF2B0444E7F44C1F78F81 /* Pods_ReactNativePassioSDK.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0F8BA1B5B3A9EFF86D449644 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				9AD1C167216CB36784FE1D29 /* Pods-ReactNativePassioSDK.debug.xcconfig */,
+				DE324AC52BDB50397AA1702D /* Pods-ReactNativePassioSDK.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		134814211AA4EA7D00B7C361 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -65,6 +80,7 @@
 				F4FF95D5245B92E700C19C63 /* PassioSdk-Bridging-Header.h */,
 				8E08D48225D48B6A00E36A80 /* Frameworks */,
 				134814211AA4EA7D00B7C361 /* Products */,
+				0F8BA1B5B3A9EFF86D449644 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -72,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				8E08D48325D48B6A00E36A80 /* PassioSDK.framework */,
+				DC44C65B1920036F92DA5126 /* Pods_ReactNativePassioSDK.framework */,
 			);
 			path = Frameworks;
 			sourceTree = "<group>";
@@ -83,6 +100,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "ReactNativePassioSDK" */;
 			buildPhases = (
+				C0CC73B76C873CB4E0AB4A27 /* [CP] Check Pods Manifest.lock */,
 				58B511D71A9E6C8500147676 /* Sources */,
 				58B511D81A9E6C8500147676 /* Frameworks */,
 				58B511D91A9E6C8500147676 /* CopyFiles */,
@@ -127,6 +145,31 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C0CC73B76C873CB4E0AB4A27 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ReactNativePassioSDK-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		58B511D71A9E6C8500147676 /* Sources */ = {
@@ -237,6 +280,7 @@
 		};
 		58B511F01A9E6C8500147676 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9AD1C167216CB36784FE1D29 /* Pods-ReactNativePassioSDK.debug.xcconfig */;
 			buildSettings = {
 				DEFINES_MODULE = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -262,6 +306,7 @@
 		};
 		58B511F11A9E6C8500147676 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DE324AC52BDB50397AA1702D /* Pods-ReactNativePassioSDK.release.xcconfig */;
 			buildSettings = {
 				DEFINES_MODULE = YES;
 				FRAMEWORK_SEARCH_PATHS = (

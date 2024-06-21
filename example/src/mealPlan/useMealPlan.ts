@@ -96,8 +96,6 @@ const useMealPlan = ({ onFoodDetail }: Props) => {
             foodSearchResult.nutritionPreview?.servingQuantity ?? 0
         }
 
-        console.log(JSON.stringify(result))
-
         onFoodDetail(result)
       }
     },

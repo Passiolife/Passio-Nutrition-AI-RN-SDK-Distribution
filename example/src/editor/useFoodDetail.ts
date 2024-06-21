@@ -27,7 +27,7 @@ const modifyPassioFoodItemByCheckSelectedUnitExist = (
   passioFoodItem: PassioFoodItem
 ) => {
   const updatedFoodItem = passioFoodItem
-  const item = updatedFoodItem.amount.servingUnits?.find(
+  const item = updatedFoodItem?.amount?.servingUnits?.find(
     (i) => i.unitName === updatedFoodItem?.amount.selectedUnit
   )
   if (item === undefined) {
@@ -67,7 +67,6 @@ export const useFoodDetail = (prop: Props) => {
   const onServingQuantityChange = useCallback(
     (value: string) => {
       setTextInput(value)
-      console.log(passioFoodItem.amount.selectedUnit)
       const newQuantity = Number(value.length > 0 ? value : 1)
       const weight =
         passioFoodItem.amount.servingUnits?.filter(

@@ -1,16 +1,27 @@
+
 import ai.passio.passiosdk.passiofood.BarcodeCandidate
 import ai.passio.passiosdk.passiofood.DetectedCandidate
 import ai.passio.passiosdk.passiofood.FoodCandidates
 import ai.passio.passiosdk.passiofood.InflammatoryEffectData
-import ai.passio.passiosdk.passiofood.PassioID
 import ai.passio.passiosdk.passiofood.data.measurement.UnitEnergy
 import ai.passio.passiosdk.passiofood.data.measurement.UnitMass
-import ai.passio.passiosdk.passiofood.data.model.*
+import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorFoodInfo
+import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorResponse
+import ai.passio.passiosdk.passiofood.data.model.PassioMealPlan
+import ai.passio.passiosdk.passiofood.data.model.PassioMealPlanItem
+import ai.passio.passiosdk.passiofood.data.model.PassioResult
+import ai.passio.passiosdk.passiofood.data.model.PassioServingSize
+import ai.passio.passiosdk.passiofood.data.model.PassioServingUnit
+import ai.passio.passiosdk.passiofood.data.model.PassioSpeechRecognitionModel
 import ai.passio.passiosdk.passiofood.nutritionfacts.PassioNutritionFacts
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.Base64
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeArray
+import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativepassiosdk.bridgePassioFoodDataInfo
 import java.io.ByteArrayOutputStream
 
@@ -141,6 +152,11 @@ fun bridgeNutritionFacts(nutritionFacts: PassioNutritionFacts): ReadableMap {
   map.putIfNotNull("fat", nutritionFacts.fat)
   map.putIfNotNull("carbs", nutritionFacts.carbs)
   map.putIfNotNull("protein", nutritionFacts.protein)
+  map.putIfNotNull("saturatedFat", nutritionFacts.saturatedFat)
+  map.putIfNotNull("transFat", nutritionFacts.transFat)
+  map.putIfNotNull("cholesterol", nutritionFacts.cholesterol)
+  map.putIfNotNull("sugarAlcohol", nutritionFacts.sugarAlcohol)
+  map.putIfNotNull("sugars", nutritionFacts.sugars)
   return map
 }
 
@@ -177,6 +193,71 @@ fun bridgePassioMealPlanItem(passioMealPlanItem: PassioMealPlanItem): ReadableMa
   map.putIfNotNull("meal", bridgePassioFoodDataInfo(passioMealPlanItem.meal))
   return map
 
+}
+fun bridgePassioSpeechRecognitionModel(item: PassioSpeechRecognitionModel): ReadableMap {
+
+  val map = WritableNativeMap()
+  map.putIfNotNull("date", item.date)
+  item.mealTime?.name.let {
+    map.putIfNotNull("mealTime", it?.lowercase())
+  }
+  item.action?.name.let {
+    map.putIfNotNull("action", it?.lowercase())
+  }
+  map.putIfNotNull("advisorInfo", bridgePassioAdvisorFoodInfo(item.advisorInfo))
+  return map
+}
+fun bridgePassioAdvisorFoodInfo(item: PassioAdvisorFoodInfo): ReadableMap {
+
+  val map = WritableNativeMap()
+  map.putIfNotNull("portionSize", item.portionSize)
+  item.foodDataInfo?.let {
+    map.putIfNotNull("foodDataInfo", bridgePassioFoodDataInfo(it))
+  }
+  map.putIfNotNull("weightGrams", item.weightGrams)
+  map.putIfNotNull("recognisedName", item.recognisedName)
+  return map
+
+}
+
+fun bridgePassioAdvisorResponse(item: PassioAdvisorResponse): ReadableMap {
+  val map = WritableNativeMap()
+  map.putIfNotNull("threadId", item.threadId)
+  map.putIfNotNull("messageId", item.messageId)
+  map.putIfNotNull("rawContent", item.rawContent)
+  map.putIfNotNull("markupContent", item.markupContent)
+  map.putIfNotNull("tools", item.tools?.mapToStringArray())
+  map.putIfNotNull("extractedIngredients", item.extractedIngredients?.mapBridged(::bridgePassioAdvisorFoodInfo))
+  return map
+}
+fun bridgePassioAdvisorResultResponse(result: PassioResult<PassioAdvisorResponse>): ReadableMap {
+  val map = WritableNativeMap()
+  when (result) {
+    is PassioResult.Success -> {
+      map.putString("status", "Success")
+      map.putIfNotNull("response", bridgePassioAdvisorResponse(result.value))
+    }
+    is PassioResult.Error -> {
+      map.putString("status", "Error")
+      map.putIfNotNull("message", result.message)
+    }
+  }
+  return map
+}
+
+fun bridgePassioResultPassioAdvisorFoodInfos(result: PassioResult<List<PassioAdvisorFoodInfo>>): ReadableMap {
+  val map = WritableNativeMap()
+  when (result) {
+    is PassioResult.Success -> {
+      map.putString("status", "Success")
+      map.putIfNotNull("response",result.value.mapBridged(::bridgePassioAdvisorFoodInfo))
+    }
+    is PassioResult.Error -> {
+      map.putString("status", "Error")
+      map.putIfNotNull("message", result.message)
+    }
+  }
+  return map
 }
 
 fun WritableMap.putIfNotNull(key: String, value: Boolean?) {

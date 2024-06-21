@@ -22,7 +22,6 @@ export const useMultiScanning = () => {
     const config: FoodDetectionConfig = {
       detectBarcodes: false,
       detectPackagedFood: false,
-      detectNutritionFacts: false,
     }
 
     // Start food detection and subscribe to events
@@ -65,7 +64,6 @@ export const useMultiScanning = () => {
 
     // Cleanup function to unsubscribe when the component unmounts
     return () => {
-      console.log('register-startFoodDetection', 'remove')
       subscription.remove()
     }
   }, [])

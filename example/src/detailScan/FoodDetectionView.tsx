@@ -31,12 +31,11 @@ export const FoodDetectionView = (props: Props) => {
     const config: FoodDetectionConfig = {
       detectBarcodes: true,
       detectPackagedFood: true,
-      detectNutritionFacts: true,
     }
     const subscription = PassioSDK.startFoodDetection(
       config,
       async (detection: FoodDetectionEvent) => {
-        const { candidates, nutritionFacts } = detection
+        const { candidates } = detection
         if (candidates && candidates?.barcodeCandidates?.length) {
           const attributes = await getAttributesForBarcodeCandidates(
             candidates.barcodeCandidates
@@ -54,9 +53,6 @@ export const FoodDetectionView = (props: Props) => {
           setState({
             candidates: attributes,
           })
-        } else if (nutritionFacts) {
-          console.log(nutritionFacts)
-          //TODO UI for nutrition facts
         } else {
           setState({ candidates: [] })
         }

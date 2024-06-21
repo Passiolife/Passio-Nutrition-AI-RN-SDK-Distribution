@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   PassioSDK,
   type FoodDetectionConfig,
-  type NutritionFacts,
   type FoodDetectionEvent,
   PassioFoodItem,
   DetectedCandidate,
@@ -22,9 +21,6 @@ export const useQuickScan = () => {
   >(null)
   const [loading, setLoading] = useState(true)
   const passioFoodItemRef = useRef<PassioFoodItem | null>(null)
-  const [nutritionFacts, setNutritionFacts] = useState<
-    NutritionFacts | undefined
-  >(undefined)
 
   // Function to clear the scanning results
   const onClearResultPress = () => {
@@ -37,16 +33,7 @@ export const useQuickScan = () => {
   useEffect(() => {
     // Function to handle food detection events
     const handleFoodDetection = async (detection: FoodDetectionEvent) => {
-      const { candidates, nutritionFacts } = detection
-
-      // If nutritionFacts are available, set them and return
-      if (
-        nutritionFacts !== undefined &&
-        nutritionFacts.servingSizeGram !== undefined
-      ) {
-        setNutritionFacts(detection.nutritionFacts)
-        return
-      }
+      const { candidates } = detection
 
       // If no candidates available, return
       if (!candidates) {
@@ -98,7 +85,7 @@ export const useQuickScan = () => {
     const config: FoodDetectionConfig = {
       detectBarcodes: true,
       detectPackagedFood: true,
-      detectNutritionFacts: true,
+      volumeDetectionMode: 'auto',
     }
 
     // Start food detection and subscribe to events
@@ -132,6 +119,5 @@ export const useQuickScan = () => {
     onAlternativeFoodItemChange,
     onClearResultPress,
     alternative,
-    nutritionFacts,
   }
 }

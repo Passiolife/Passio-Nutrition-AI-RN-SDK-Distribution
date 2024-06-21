@@ -15,6 +15,7 @@ import type {
   PassioFoodDataInfo,
   UnitMass,
   DetectedCandidate,
+  NutritionDetectionEvent,
 } from '../models'
 import type {
   Callback,
@@ -30,6 +31,10 @@ import type {
   PassioMealTime,
   PassioMealPlan,
   PassioMealPlanItem,
+  PassioAdvisorFoodInfo,
+  PassioSpeechRecognitionModel,
+  PassioImageResolution,
+  PassioFetchAdvisorInfoResult,
 } from '..'
 import { PassioFoodItemNutrients } from '../models/v3/Nutrients'
 
@@ -110,15 +115,49 @@ export const PassioSDK: PassioSDKInterface = {
         console.error('Error in Passio food detection callback: ', err)
       }
     })
-    const { detectBarcodes, detectPackagedFood, detectNutritionFacts } = options
-    PassioSDKBridge.startFoodDetection(
-      detectBarcodes,
-      detectPackagedFood || detectNutritionFacts, //ocr required for nutrition fact scanning
-      detectNutritionFacts
-    )
+    const { detectBarcodes, detectPackagedFood, volumeDetectionMode } = options
+    if (Platform.OS === 'ios') {
+      PassioSDKBridge.startFoodDetection(
+        detectBarcodes,
+        detectPackagedFood,
+        volumeDetectionMode ?? 'auto'
+      )
+    } else {
+      PassioSDKBridge.startFoodDetection(
+        detectBarcodes,
+        detectPackagedFood //ocr required for nutrition fact scanning
+      )
+    }
+
     return {
       remove: () => {
         PassioSDKBridge.stopFoodDetection()
+        subscription.remove()
+      },
+    }
+  },
+
+  startNutritionFactsDetection(
+    callback: (detection: NutritionDetectionEvent) => void
+  ): Subscription {
+    const emitter =
+      Platform.OS === 'ios'
+        ? new NativeEventEmitter(PassioSDKBridge)
+        : new NativeEventEmitter()
+    const subscription = emitter.addListener(
+      'NutritionFactsRecognitionListener',
+      (event) => {
+        try {
+          callback(event as NutritionDetectionEvent)
+        } catch (err) {
+          console.error('Error in Passio nutrition detection callback: ', err)
+        }
+      }
+    )
+    PassioSDKBridge.startNutritionFactsDetection()
+    return {
+      remove: () => {
+        PassioSDKBridge.stopNutritionFactsDetection()
         subscription.remove()
       },
     }
@@ -140,6 +179,32 @@ export const PassioSDK: PassioSDKInterface = {
     code: Barcode | PackagedFoodCode
   ): Promise<PassioFoodItem | null> {
     return PassioSDKBridge.fetchFoodItemForProductCode(code)
+  },
+
+  async fetchFoodItemLegacy(
+    passioID: PassioID
+  ): Promise<PassioFoodItem | null> {
+    return PassioSDKBridge.fetchFoodItemLegacy(passioID)
+  },
+
+  async recognizeSpeechRemote(
+    text: string
+  ): Promise<PassioSpeechRecognitionModel[] | null> {
+    return PassioSDKBridge.recognizeSpeechRemote(text)
+  },
+
+  async recognizeImageRemote(
+    imageUri: string,
+    resolution?: PassioImageResolution
+  ): Promise<PassioAdvisorFoodInfo[] | null> {
+    try {
+      return PassioSDKBridge.recognizeImageRemote(
+        imageUri,
+        resolution ?? 'RES_512'
+      )
+    } catch (err) {
+      return Promise.reject(err)
+    }
   },
 
   async searchForFood(searchQuery: string): Promise<PassioSearchResult | null> {
@@ -236,6 +301,24 @@ export const PassioSDK: PassioSDKInterface = {
     day: number
   ): Promise<PassioMealPlanItem[] | null> {
     return PassioSDKBridge.fetchMealPlanForDay(mealPlanLabel, day)
+  },
+
+  async fetchHiddenIngredients(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult> {
+    return PassioSDKBridge.fetchHiddenIngredients(foodName)
+  },
+
+  async fetchVisualAlternatives(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult> {
+    return PassioSDKBridge.fetchVisualAlternatives(foodName)
+  },
+
+  async fetchPossibleIngredients(
+    foodName: string
+  ): Promise<PassioFetchAdvisorInfoResult> {
+    return PassioSDKBridge.fetchVisualAlternatives(foodName)
   },
 }
 

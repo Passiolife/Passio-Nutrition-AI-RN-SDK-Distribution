@@ -17,8 +17,8 @@ export interface FoodDetectionConfig {
   detectBarcodes: boolean
 
   /**
-   * Detect barcodes on packaged food products. Results will be returned
-   * under the `nutritionFacts` property on `FoodDetectionEvent`.
+   * Supported only in IOS
+   * Scanned AmountEstimate
    */
-  detectNutritionFacts: boolean
+  volumeDetectionMode?: 'auto' | 'dualWideCamera' | 'none'
 }

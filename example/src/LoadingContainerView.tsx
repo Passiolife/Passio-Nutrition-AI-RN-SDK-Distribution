@@ -16,7 +16,6 @@ import { SDKStatus, useCameraAuthorization, usePassioSDK } from './App.hooks'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { FoodSearchView } from './search'
 import { MultiScanView } from './multiScan/MultiScanView'
-import { PASSIO_KEY } from './key'
 import { QuickScanningScreen } from './quick/QuickScanningScreen'
 import {
   PassioSDK,
@@ -25,6 +24,11 @@ import {
 import FoodDetail from './editor/FoodDetail'
 import { FoodSuggestion } from './suggestion'
 import { MealPlan } from './mealPlan'
+import { NutritionFactScreen } from './nutritionFact/NutritionFactScreen'
+import { RecognizeImageRemote } from './recognizeImageRemote'
+import { RecognizeTextRemote } from './recognizeTextRemote'
+import { LegacyAPITest } from './legacyAPITest'
+import { ChatScreen } from './chat'
 
 type ViewType =
   | 'Scan'
@@ -34,6 +38,11 @@ type ViewType =
   | 'Quick'
   | 'Suggestion'
   | 'MealPlan'
+  | 'NutritionFact'
+  | 'recognizeImageRemote'
+  | 'recognizeTextRemote'
+  | 'legacyAPI'
+  | 'Chat'
 
 const logo = require('./assets/passio_logo.png')
 
@@ -43,7 +52,7 @@ export const LoadingContainerView = () => {
   const cameraAuthorized = useCameraAuthorization()
 
   const sdkStatus = usePassioSDK({
-    key: PASSIO_KEY,
+    key: 'PASSIO_KEY',
     autoUpdate: true,
   })
 
@@ -57,6 +66,18 @@ export const LoadingContainerView = () => {
 
   const onBackToHome = useCallback(() => {
     setViewType('Home')
+  }, [])
+
+  const onRecognizeImageRemote = useCallback(() => {
+    setViewType('recognizeImageRemote')
+  }, [])
+
+  const onRecognizeTextRemote = useCallback(() => {
+    setViewType('recognizeTextRemote')
+  }, [])
+
+  const onLegacyAPI = useCallback(() => {
+    setViewType('legacyAPI')
   }, [])
 
   const onScanImage = useCallback(async () => {
@@ -110,6 +131,13 @@ export const LoadingContainerView = () => {
   const onMealPlan = useCallback(() => {
     setViewType('MealPlan')
   }, [])
+  const onChat = useCallback(() => {
+    setViewType('Chat')
+  }, [])
+
+  const onNutritionFact = useCallback(() => {
+    setViewType('NutritionFact')
+  }, [])
 
   const onMultiScanning = useCallback(() => {
     setViewType('MultiScan')
@@ -161,6 +189,31 @@ export const LoadingContainerView = () => {
                 onFoodDetail={setPassioFoodItem}
               />
             )
+          case 'recognizeImageRemote':
+            return (
+              <RecognizeImageRemote
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+          case 'recognizeTextRemote':
+            return (
+              <RecognizeTextRemote
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+          case 'legacyAPI':
+            return (
+              <LegacyAPITest
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+
+          case 'NutritionFact':
+            return <NutritionFactScreen onClose={onBackToHome} />
+
           case 'MealPlan':
             return (
               <MealPlan
@@ -168,6 +221,8 @@ export const LoadingContainerView = () => {
                 onFoodDetail={setPassioFoodItem}
               />
             )
+          case 'Chat':
+            return <ChatScreen onClose={onBackToHome} />
 
           default:
             // Handle invalid viewType or provide a default view
@@ -185,6 +240,11 @@ export const LoadingContainerView = () => {
                 onQuickScanning={onQuickScanning}
                 onSuggestion={onSuggestion}
                 onMealPlan={onMealPlan}
+                onNutritionFact={onNutritionFact}
+                onRecognizeImageRemote={onRecognizeImageRemote}
+                onRecognizeTextRemote={onRecognizeTextRemote}
+                onLegacyAPI={onLegacyAPI}
+                onChat={onChat}
               />
             )
         }
@@ -228,8 +288,13 @@ const LoadingView = (props: {
   onSearchFood: () => void
   onSuggestion: () => void
   onMealPlan: () => void
+  onNutritionFact: () => void
+  onRecognizeImageRemote: () => void
+  onRecognizeTextRemote: () => void
+  onLegacyAPI: () => void
   onMultiScanning: () => void
   onQuickScanning: () => void
+  onChat: () => void
 }) => {
   return (
     <ImageBackground
@@ -267,8 +332,24 @@ const LoadingView = (props: {
                     onClick={props.onQuickScanning}
                   />
                   <FeatureButton
+                    title="Nutrition Label Scan"
+                    onClick={props.onNutritionFact}
+                  />
+                  <FeatureButton
+                    title="Recognize Text Remote"
+                    onClick={props.onRecognizeTextRemote}
+                  />
+                  <FeatureButton
+                    title="Recognize Image Remote"
+                    onClick={props.onRecognizeImageRemote}
+                  />
+                  <FeatureButton
                     title="Multi Scan (Only visual food)"
                     onClick={props.onMultiScanning}
+                  />
+                  <FeatureButton
+                    title="LegacyAPI"
+                    onClick={props.onLegacyAPI}
                   />
                 </>
               ) : null}
@@ -281,6 +362,7 @@ const LoadingView = (props: {
                 onClick={props.onScanImagePress}
               />
               <FeatureButton title="Meal Plan" onClick={props.onMealPlan} />
+              <FeatureButton title="Chat" onClick={props.onChat} />
             </>
           ) : null}
         </View>
