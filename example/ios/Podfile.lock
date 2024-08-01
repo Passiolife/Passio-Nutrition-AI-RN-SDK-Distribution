@@ -285,7 +285,7 @@ PODS:
     - React-jsi (= 0.68.5)
     - React-logger (= 0.68.5)
     - React-perflogger (= 0.68.5)
-  - ReactNativePassioSDK (3.1.1):
+  - ReactNativePassioSDK (3.1.1-3):
     - React-Core
   - RNGestureHandler (2.16.2):
     - React-Core
@@ -466,7 +466,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: 9819a3bf6230e4b2a99877c21268b0b2416157a1
   React-runtimeexecutor: b1f1995089b90696dbc2a7ffe0059a80db5c8eb1
   ReactCommon: 149e2c0acab9bac61378da0db5b2880a1b5ff59b
-  ReactNativePassioSDK: d8ee8965a12e3fcfe8fcfdf4a71629b60c28f0e4
+  ReactNativePassioSDK: 058706b380c8a0de2c73fb11fa2589f4bae60463
   RNGestureHandler: 7d8bc16a05220fa1827ff734e418d9044b0cce3d
   RNReanimated: 4d6eefb69dc70c65b0ee62b6a99490d077a37bbc
   Yoga: c4d61225a466f250c35c1ee78d2d0b3d41fe661c

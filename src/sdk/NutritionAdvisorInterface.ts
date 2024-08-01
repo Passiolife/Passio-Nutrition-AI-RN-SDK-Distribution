@@ -10,13 +10,6 @@ import type {
  */
 export interface NutritionAdvisorInterface {
   /**
-   * Configures the Nutrition Advisor with the provided license key.
-   * @param licenseKey - The license key to configure the advisor.
-   * @returns A Promise resolving to the status of the configuration.
-   */
-  configure(licenseKey: string): Promise<PassioAdvisorResultStatus | null>
-
-  /**
    * Initiates a conversation with the Nutrition Advisor.
    * @returns A Promise resolving to the status of the conversation initiation.
    */

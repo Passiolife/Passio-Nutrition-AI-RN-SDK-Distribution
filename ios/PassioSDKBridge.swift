@@ -14,6 +14,7 @@ class PassioSDKBridge: RCTEventEmitter {
     private let completedDownloadingFileEventName = "completedDownloadingFile"
     private let downloadingErrorEventName = "downloadingError"
     private let onPassioStatusChangedEventName = "onPassioStatusChanged"
+    private let tokenBudgetUpdatedEVentName = "tokenBudgetUpdated"
     
     @objc(configure:debugMode:autoUpdate:localModelURLs:withResolver:withRejecter:)
        func configure(key: String,
@@ -33,7 +34,6 @@ class PassioSDKBridge: RCTEventEmitter {
            self.debugMode = debugMode == 0 ? false : true
            
            sdk.statusDelegate = self
-           
            if #available(iOS 13.0, *) {
                sdk.configure(passioConfiguration: config) { (status) in
                    
@@ -70,9 +70,52 @@ class PassioSDKBridge: RCTEventEmitter {
            }
        }
     
+
+    @objc(accountUsageUpdates)
+    func accountUsageUpdates() {
+        sdk.accountDelegate = self
+    }
+       
+
+    @objc(enableFlashlight:level:)
+     func enableFlashlight(enabled: Bool, level: Float) {
+       // Replace 'sdk' with your actual SDK or implementation
+       sdk.enableFlashlight(enabled: enabled, level: level)
+     }
+
+    @objc(setCameraVideoZoom:)
+     func setCameraVideoZoom(toVideoZoomFactor: CGFloat) {
+       // Replace 'sdk' with your actual SDK or implementation
+       sdk.setCamera(toVideoZoomFactor: toVideoZoomFactor)
+     }
     
-    @objc(startFoodDetection:detectPackagedFood:volumeDetectionMode:)
-    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,volumeDetectionMode:String?) {
+    func mapFromMinMaxCameraZoomLevel(minMax: (minLevel: CGFloat?, maxLevel: CGFloat?)) -> [String: Any?] {
+            var map = [String: Any?]()
+            map["minZoomLevel"] = minMax.minLevel
+            map["maxZoomLevel"] = minMax.maxLevel
+            return map
+        }
+    
+    
+    @objc(getMinMaxCameraZoomLevel:withRejecter:)
+       func getMinMaxCameraZoomLevel(resolve: @escaping RCTPromiseResolveBlock,
+                                     reject: @escaping RCTPromiseRejectBlock) -> Void {
+           let callback = sdk.getMinMaxCameraZoomLevel
+           let body = mapFromMinMaxCameraZoomLevel(minMax: callback)
+           resolve(body)
+       }
+    
+    
+    
+    @objc(setTapToFocus:)
+     func setTapToFocus(pointOfInterest: String) {
+        if let preparedPoint = prepareCGPoint(pointOfInterest) {
+             sdk.setTapToFocus(pointOfInterest: preparedPoint)
+         }
+     }
+        
+    @objc(startFoodDetection:detectPackagedFood:volumeDetectionMode:detectVisual:)
+    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,volumeDetectionMode:String?,detectVisual:Bool = true) {
         
         var mode = PassioNutritionAISDK.VolumeDetectionMode.auto
         
@@ -87,7 +130,7 @@ class PassioSDKBridge: RCTEventEmitter {
         }
         
         let config = FoodDetectionConfiguration(
-            detectVisual: true,
+            detectVisual: detectVisual,
             volumeDetectionMode: mode,
             detectBarcodes: detectBarcodes,
             detectPackagedFood: detectPackagedFood
@@ -173,6 +216,9 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
+    
+
+    
     @objc(fetchFoodItemLegacy:withResolver:withRejecter:)
     func fetchFoodItemLegacy(passioID: String,
                                   resolve: @escaping RCTPromiseResolveBlock,
@@ -238,24 +284,37 @@ class PassioSDKBridge: RCTEventEmitter {
     
     
     
-    @objc(fetchFoodItemForDataInfo:withResolver:withRejecter:)
+    
+    @objc(fetchFoodItemForDataInfo:weightGram:withResolver:withRejecter:)
     func fetchFoodItemForDataInfo(searchResult: String,
-                       resolve: @escaping RCTPromiseResolveBlock,
-                       reject: @escaping RCTPromiseRejectBlock) {
+                                  weightGram: String,
+                                  resolve: @escaping RCTPromiseResolveBlock,
+                                  reject: @escaping RCTPromiseRejectBlock) {
         
-        var requestBody = preparePassioFoodDataInfo(searchResult)
-        if let requestBody = requestBody {
-            sdk.fetchFoodItemFor(foodItem: requestBody) { data in
+        // Attempt to convert weightGram from String to Double
+        let weightGramDouble: Double?
+        if let weight = Double(weightGram), weight >= 0 {
+            weightGramDouble = weight
+        } else {
+            weightGramDouble = nil
+        }
+        
+        // Prepare the request body
+        if let requestBody = preparePassioFoodDataInfo(searchResult) {
+            // Fetch the food item
+            sdk.fetchFoodItemFor(foodItem: requestBody, weightGrams: weightGramDouble) { data in
                 if let data = data {
+                    // Resolve with the data if available
                     resolve(bridgePassioFoodItem(data))
                 } else {
+                    // Resolve with NSNull if no data
                     resolve(NSNull())
                 }
             }
         } else {
+            // Resolve with NSNull if requestBody is nil
             resolve(NSNull())
         }
-        
     }
     
     @objc(fetchSuggestions:withResolver:withRejecter:)
@@ -292,8 +351,9 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
-    @objc(recognizeImageRemote:resolution:withResolver:withRejecter:)
+    @objc(recognizeImageRemote:message:resolution:withResolver:withRejecter:)
     func recognizeImageRemote(imageUri: String,
+                              message:String?,
                               resolution:String,
                                        resolve: @escaping RCTPromiseResolveBlock,
                                        reject: @escaping RCTPromiseRejectBlock) {
@@ -311,8 +371,9 @@ class PassioSDKBridge: RCTEventEmitter {
             } else {
                 resolutionType = PassioImageResolution.full
             }
-        
-            sdk.recognizeImageRemote(image: image!,resolution: resolutionType) { (response: [Any]) in
+      
+
+            sdk.recognizeImageRemote(image: image!,resolution: resolutionType,message: message) { (response: [Any]) in
                 
                 if let result = response as? [PassioAdvisorFoodInfo] {
                     resolve(result.map(bridgePassioAdvisorFoodInfo))
@@ -331,7 +392,7 @@ class PassioSDKBridge: RCTEventEmitter {
     
     override func supportedEvents() -> [String]! {
         
-        return [foodDetectionEventName,nutritionFactsRecognitionEventName,onPassioStatusChangedEventName, completedDownloadingFileEventName, downloadingErrorEventName]
+        return [foodDetectionEventName,nutritionFactsRecognitionEventName,onPassioStatusChangedEventName, completedDownloadingFileEventName, downloadingErrorEventName,tokenBudgetUpdatedEVentName]
     }
 
     
@@ -477,26 +538,7 @@ class PassioSDKBridge: RCTEventEmitter {
     
 
     // Nutiriton AI SDK (nutritionAdvisorSDK)
-    
-    @objc(configureAIAdvisor:withResolver:withRejecter:)
-    func configureAIAdvisor(licenceKey:String,
-                            resolve: @escaping RCTPromiseResolveBlock,
-                            reject: @escaping RCTPromiseRejectBlock) {
-        
-        nutritionAdvisorSDK.configure(licenceKey: licenceKey) { status in
-            switch status {
-            case .success:
-                resolve([
-                    "status": "Success"
-                ])
-            case .failure(let error):
-                resolve([
-                    "status": "Error",
-                    "message": error.errorMessage
-                ])
-            }
-        }
-    }
+   
     
     @objc(initConversationAIAdvisor:withRejecter:)
     func initConversationAIAdvisor(
@@ -555,6 +597,7 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
+
     
     
     
@@ -600,7 +643,14 @@ extension PassioSDKBridge: NutritionFactsDelegate {
         sendEvent(withName: nutritionFactsRecognitionEventName, body: body)
     }
 }
+extension PassioSDKBridge: PassioAccountDelegate {
 
+    func tokenBudgetUpdated(tokenBudget: PassioNutritionAISDK.PassioTokenBudget) {
+        
+        tokenBudget.debugPrint()
+        sendEvent(withName: tokenBudgetUpdatedEVentName, body: bridgePassioTokenBudget(tokenBudget))
+    }
+}
 
 extension PassioSDKBridge: PassioStatusDelegate {
     func passioStatusChanged(status: PassioStatus) {
@@ -947,6 +997,15 @@ private func bridgePassioFetchPassioAdvisorFoodInfos(_ status: Result<[PassioAdv
     return body
 }
 
+private func bridgePassioTokenBudget(_ val: PassioTokenBudget) -> [String: Any] {
+    var body: [String: Any] = [:]
+    body.addIfPresent(key: "budgetCap", value: val.budgetCap)
+    body.addIfPresent(key: "periodUsage", value: val.periodUsage)
+    body.addIfPresent(key: "requestUsage", value: val.requestUsage)
+    body.addIfPresent(key: "usedPercent", value: val.usedPercent)
+    return body
+}
+
 
 fileprivate extension Dictionary {
     
@@ -970,7 +1029,7 @@ private func bridgePassioFoodItem(_ val: PassioFoodItem) -> [String: Any?] {
     body["iconId"] = val.iconId
     body["amount"] = bridgePassioFoodAmount(val.amount)
     body["ingredients"] = val.ingredients.map { bridgePassioIngredient($0) }
-    body["weight"] = bridgeUnitMass(val.weight())
+    body["ingredientWeight"] = bridgeUnitMass(val.ingredientWeight())
     // Not include in android
     body["licenseCopy"] = val.licenseCopy
     body["scannedId"] = val.scannedId
@@ -1178,6 +1237,29 @@ private func preparePassioSearchNutritionPreview(_ json: String) -> PassioSearch
             if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
                
                 return PassioSearchNutritionPreview(calories: jsonData["calories"] as! Int, carbs: jsonData["carbs"] as! Double, fat: jsonData["fat"] as! Double, protein: jsonData["protein"] as! Double, servingUnit: jsonData["servingUnit"] as! String, servingQuantity: jsonData["servingQuantity"] as! Double, weightUnit: jsonData["weightUnit"] as! String, weightQuantity: jsonData["weightQuantity"] as! Double)
+                
+            }else{
+                return nil
+            }
+        }else{
+            return nil
+        }
+    }catch {
+       return nil
+
+    }
+    
+   
+}
+
+private func prepareCGPoint(_ json: String) -> CGPoint? {
+    
+   
+    do{
+        if let json = json.data(using: String.Encoding.utf8){
+            if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
+              
+                return CGPoint(x: jsonData["x"] as! Double, y: jsonData["y"] as! Double)
                 
             }else{
                 return nil

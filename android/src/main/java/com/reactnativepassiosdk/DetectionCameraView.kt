@@ -6,9 +6,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.FrameLayout
 import androidx.camera.view.PreviewView
-import androidx.lifecycle.*
-import com.facebook.react.common.LifecycleState
-
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.OnLifecycleEvent
 
 @SuppressLint("ViewConstructor")
 class DetectionCameraView(context: Context, private val lifecycleOwner: LifecycleOwner): FrameLayout(context), LifecycleOwner, LifecycleObserver, PassioCameraViewProvider {
@@ -20,36 +22,23 @@ class DetectionCameraView(context: Context, private val lifecycleOwner: Lifecycl
   init {
     previewView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
     addView(previewView)
-    PassioSDK.instance.startCamera(this)
     lifecycleOwner.lifecycle.addObserver(this)
   }
 
-  private fun resumeCamera() {
-    registry.currentState = Lifecycle.State.RESUMED
-  }
-
   private fun stopCamera() {
-    registry.currentState = Lifecycle.State.CREATED
+    PassioSDK.instance.stopCamera()
+    registry.currentState = Lifecycle.State.DESTROYED
   }
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
-    resumeCamera()
+    PassioSDK.instance.startCamera(this)
+    registry.currentState = Lifecycle.State.STARTED
   }
 
   override fun onDetachedFromWindow() {
     super.onDetachedFromWindow()
     stopCamera()
-  }
-
-  @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-  fun onParentLifecycleCreate() {
-    resumeCamera()
-  }
-
-  @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-  fun onParentLifecycleResume() {
-    resumeCamera()
   }
 
   @OnLifecycleEvent(Lifecycle.Event.ON_STOP)

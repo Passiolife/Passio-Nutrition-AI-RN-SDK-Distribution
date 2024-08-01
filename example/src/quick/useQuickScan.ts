@@ -43,15 +43,15 @@ export const useQuickScan = () => {
       let attributes: PassioFoodItem | null = null
 
       // Determine the type of food detection and fetch attributes accordingly
-      if (candidates.barcodeCandidates?.[0]) {
+      if (candidates && candidates.barcodeCandidates?.[0]) {
         const barcode = candidates.barcodeCandidates[0].barcode
         attributes = await PassioSDK.fetchFoodItemForProductCode(barcode)
-      } else if (candidates.packagedFoodCode?.[0]) {
-        const packagedFoodCode = candidates.packagedFoodCode[0]
+      } else if (candidates && candidates.packagedFoodCode?.[0]) {
+        const packagedFoodCode = candidates.packagedFoodCode?.[0]
         attributes = await PassioSDK.fetchFoodItemForProductCode(
           packagedFoodCode
         )
-      } else if (candidates.detectedCandidates?.[0]) {
+      } else if (candidates && candidates.detectedCandidates?.[0]) {
         const passioID = candidates.detectedCandidates[0].passioID
         attributes = await PassioSDK.fetchFoodItemForPassioID(passioID)
       }
@@ -71,7 +71,7 @@ export const useQuickScan = () => {
             return prev
           } else {
             setAlternativePassioIDAttributes(
-              candidates.detectedCandidates[0]?.alternatives
+              candidates.detectedCandidates?.[0]?.alternatives
             )
             return attributes
           }
@@ -85,6 +85,7 @@ export const useQuickScan = () => {
     const config: FoodDetectionConfig = {
       detectBarcodes: true,
       detectPackagedFood: true,
+      detectVisual: true,
       volumeDetectionMode: 'auto',
     }
 

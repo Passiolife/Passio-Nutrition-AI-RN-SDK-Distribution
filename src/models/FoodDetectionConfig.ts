@@ -17,6 +17,11 @@ export interface FoodDetectionConfig {
   detectBarcodes: boolean
 
   /**
+   Only set to false if you don't want to use the ML Models to detect food.
+   */
+  detectVisual?: boolean
+
+  /**
    * Supported only in IOS
    * Scanned AmountEstimate
    */

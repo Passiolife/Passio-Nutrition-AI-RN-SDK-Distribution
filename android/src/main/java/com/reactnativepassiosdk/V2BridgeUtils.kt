@@ -30,7 +30,7 @@ fun bridgePassioFoodItem(foodItem: PassioFoodItem): ReadableMap {
   map.putIfNotNull("iconId", foodItem.iconId)
   map.putIfNotNull("amount", bridgePassioFoodAmount(foodItem.amount))
   map.putIfNotNull("ingredients", foodItem.ingredients.mapBridged(::bridgePassioIngredient))
-  map.putIfNotNull("weight", bridgeUnitMass((foodItem.weight())))
+  map.putIfNotNull("ingredientWeight", bridgeUnitMass((foodItem.ingredientWeight())))
   map.putIfNotNull("isOpenFood", foodItem.isOpenFoodAsBoolean())
   map.putIfNotNull("openFoodLicense", foodItem.openFoodLicense())
   return map

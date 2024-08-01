@@ -9,11 +9,6 @@ import type { NutritionAdvisorInterface } from './NutritionAdvisorInterface'
 const { PassioSDKBridge } = NativeModules
 
 export const NutritionAdvisor: NutritionAdvisorInterface = {
-  async configure(
-    licenseKey: string
-  ): Promise<PassioAdvisorResultStatus | null> {
-    return PassioSDKBridge.configureAIAdvisor(licenseKey)
-  },
   async initConversation(): Promise<PassioAdvisorResultStatus | null> {
     return PassioSDKBridge.initConversationAIAdvisor()
   },

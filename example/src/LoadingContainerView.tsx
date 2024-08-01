@@ -16,6 +16,7 @@ import { SDKStatus, useCameraAuthorization, usePassioSDK } from './App.hooks'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { FoodSearchView } from './search'
 import { MultiScanView } from './multiScan/MultiScanView'
+import { PASSIO_KEY } from './key'
 import { QuickScanningScreen } from './quick/QuickScanningScreen'
 import {
   PassioSDK,
@@ -52,7 +53,7 @@ export const LoadingContainerView = () => {
   const cameraAuthorized = useCameraAuthorization()
 
   const sdkStatus = usePassioSDK({
-    key: 'PASSIO_KEY',
+    key: PASSIO_KEY,
     autoUpdate: true,
   })
 

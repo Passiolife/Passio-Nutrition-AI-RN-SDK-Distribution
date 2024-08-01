@@ -24,7 +24,7 @@ export interface PassioFoodItem {
   ingredients?: PassioIngredient[]
 
   // Weight of the food item, measured in units of mass
-  weight: UnitMass
+  ingredientWeight: UnitMass
 
   /**
    * food item credits to openfood.org when the data is coming from them

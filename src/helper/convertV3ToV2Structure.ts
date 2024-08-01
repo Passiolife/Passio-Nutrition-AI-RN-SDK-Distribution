@@ -48,8 +48,8 @@ export const convertPassioFoodItemV3ToPassioFoodItemV2 = (
       servingUnits: foodItem.amount?.servingUnits ?? [],
       servingSizes: foodItem.amount?.servingSizes ?? [],
       computedWeight: {
-        value: foodItem.weight?.value,
-        unit: foodItem.weight?.unit,
+        value: foodItem.ingredientWeight?.value,
+        unit: foodItem.ingredientWeight?.unit,
       } as Measurement,
       ...nutrients,
       ingredientsDescription: foodItem.details,
@@ -103,7 +103,7 @@ export const convertPassioIngredientV3ToPassioFoodItemV2 = (
       name: foodItem.name,
       iconId: foodItem.iconId,
       amount: foodItem.amount,
-      weight: foodItem.weight,
+      ingredientWeight: foodItem.weight,
     })
 
     const item: PassioFoodItemV2 = {

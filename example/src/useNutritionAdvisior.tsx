@@ -19,15 +19,10 @@ export const useNutritionAdvisor = () => {
   useEffect(() => {
     const initializeNutritionAdvisor = async () => {
       try {
-        const status = await NutritionAdvisor.configure('PASSIO_ADVISOR_KEY')
-        if (status?.status === 'Success') {
-          const conversationResponse = await NutritionAdvisor.initConversation()
-          setConfigureStatus(
-            conversationResponse?.status === 'Success' ? 'Success' : 'Error'
-          )
-        } else {
-          setConfigureStatus('Error')
-        }
+        const conversationResponse = await NutritionAdvisor.initConversation()
+        setConfigureStatus(
+          conversationResponse?.status === 'Success' ? 'Success' : 'Error'
+        )
       } catch (err) {
         console.error(`PassioSDK Error ${err}`)
         setConfigureStatus('Error')

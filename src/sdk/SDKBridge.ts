@@ -16,6 +16,9 @@ import type {
   UnitMass,
   DetectedCandidate,
   NutritionDetectionEvent,
+  PassioAccountListener,
+  PassioTokenBudget,
+  PassioCameraZoomLevel,
 } from '../models'
 import type {
   Callback,
@@ -61,6 +64,27 @@ export const PassioSDK: PassioSDKInterface = {
       autoUpdate,
       modelURLs
     )
+  },
+
+  setAccountListener({ onTokenBudgetUpdate }: PassioAccountListener): Callback {
+    const emitter =
+      Platform.OS === 'ios'
+        ? new NativeEventEmitter(PassioSDKBridge)
+        : new NativeEventEmitter()
+
+    PassioSDKBridge.accountUsageUpdates()
+
+    const tokenBudgetUpdatedListener = emitter.addListener(
+      'tokenBudgetUpdated',
+      (event) => {
+        onTokenBudgetUpdate(event as PassioTokenBudget)
+      }
+    )
+    return {
+      remove: () => {
+        tokenBudgetUpdatedListener.remove()
+      },
+    }
   },
 
   onDownloadingPassioModelCallBacks({
@@ -115,17 +139,24 @@ export const PassioSDK: PassioSDKInterface = {
         console.error('Error in Passio food detection callback: ', err)
       }
     })
-    const { detectBarcodes, detectPackagedFood, volumeDetectionMode } = options
+    const {
+      detectBarcodes,
+      detectPackagedFood,
+      volumeDetectionMode,
+      detectVisual,
+    } = options
     if (Platform.OS === 'ios') {
       PassioSDKBridge.startFoodDetection(
         detectBarcodes,
         detectPackagedFood,
-        volumeDetectionMode ?? 'auto'
+        volumeDetectionMode ?? 'auto',
+        detectVisual ?? true
       )
     } else {
       PassioSDKBridge.startFoodDetection(
         detectBarcodes,
-        detectPackagedFood //ocr required for nutrition fact scanning
+        detectPackagedFood, //ocr required for nutrition fact scanning
+        detectVisual ?? true
       )
     }
 
@@ -163,6 +194,22 @@ export const PassioSDK: PassioSDKInterface = {
     }
   },
 
+  async enableFlashlight(enabled: boolean, torchLevel?: number): Promise<void> {
+    if (Platform.OS === 'ios') {
+      return PassioSDKBridge.enableFlashlight(enabled, torchLevel ?? 1.0)
+    } else {
+      return PassioSDKBridge.enableFlashlight(enabled)
+    }
+  },
+
+  async setCameraZoomLevel(zoomLevel: number): Promise<void> {
+    return PassioSDKBridge.setCameraVideoZoom(zoomLevel)
+  },
+
+  async getMinMaxCameraZoomLevel(): Promise<PassioCameraZoomLevel> {
+    return PassioSDKBridge.getMinMaxCameraZoomLevel()
+  },
+
   async fetchFoodItemForPassioID(
     passioID: PassioID
   ): Promise<PassioFoodItem | null> {
@@ -195,11 +242,13 @@ export const PassioSDK: PassioSDKInterface = {
 
   async recognizeImageRemote(
     imageUri: string,
+    message?: string,
     resolution?: PassioImageResolution
   ): Promise<PassioAdvisorFoodInfo[] | null> {
     try {
       return PassioSDKBridge.recognizeImageRemote(
         imageUri,
+        message,
         resolution ?? 'RES_512'
       )
     } catch (err) {
@@ -282,13 +331,19 @@ export const PassioSDK: PassioSDKInterface = {
   },
 
   async fetchFoodItemForDataInfo(
-    queryResult: PassioFoodDataInfo
+    queryResult: PassioFoodDataInfo,
+    weightGram?: number
   ): Promise<PassioFoodItem | null> {
+    // -1 is considered an invalid value for weight in grams.
     if (Platform.OS === 'android') {
-      return PassioSDKBridge.fetchFoodItemForDataInfo(queryResult)
+      return PassioSDKBridge.fetchFoodItemForDataInfo(
+        queryResult,
+        weightGram ?? -1
+      )
     } else {
       return PassioSDKBridge.fetchFoodItemForDataInfo(
-        JSON.stringify(queryResult)
+        JSON.stringify(queryResult),
+        (weightGram ?? -1).toString()
       )
     }
   },
@@ -319,6 +374,10 @@ export const PassioSDK: PassioSDKInterface = {
     foodName: string
   ): Promise<PassioFetchAdvisorInfoResult> {
     return PassioSDKBridge.fetchVisualAlternatives(foodName)
+  },
+
+  stopCamera() {
+    return PassioSDKBridge.stopCamera()
   },
 }
 

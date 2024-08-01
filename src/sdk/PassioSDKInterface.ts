@@ -26,6 +26,8 @@ import type {
   RefCode,
   DetectedCandidate,
   NutritionDetectionEvent,
+  PassioAccountListener,
+  PassioCameraZoomLevel,
 } from '../models'
 
 export interface PassioSDKInterface {
@@ -36,6 +38,12 @@ export interface PassioSDKInterface {
    * @returns A `Promise` resolving with a `PassioStatus` indicating the current state of the SDK.
    */
   configure(options: ConfigurationOptions): Promise<PassioStatus>
+
+  /**
+   * setAccountListener to track account usage updates. Used to monitor total monthly
+   * tokens, used tokens and how many tokens the last request used.
+   */
+  setAccountListener: (passioAccountListener: PassioAccountListener) => Callback
 
   /**
    * Prompt the user for camera authorization if not already granted.
@@ -54,6 +62,25 @@ export interface PassioSDKInterface {
     options: FoodDetectionConfig,
     callback: (detection: FoodDetectionEvent) => void
   ): Subscription
+
+  /**
+   * Use this method to turn Flashlight on/off.
+   * @param enabled - Pass true to turn flashlight on or pass false to turn in off.
+   * @param torchLevel - Only Available for IOS, Sets the illumination level when in Flashlight mode.
+   * This value must be a floating-point number between 0.0 and 1.0 default is 1.0.
+   */
+  enableFlashlight(enabled: boolean, torchLevel?: number): void
+
+  /**
+   * Use this function if you want to change zoom level of SDK's camera
+   * @param zoomLevel - Level of zoom. Allowed values range from 1.0 (full field of view) to the value of the active format’s of device.
+   */
+  setCameraZoomLevel(zoomLevel: number): void
+
+  /**
+   * Use this property to get Min and Max available VideoZoomFactor for camera
+   */
+  getMinMaxCameraZoomLevel(): Promise<PassioCameraZoomLevel>
 
   /**
    * Begin nutrition fact label detection using the device's camera.
@@ -100,17 +127,13 @@ export interface PassioSDKInterface {
   /**
    * Data info of the search food with a given search result.
    * @param passioFoodDataInfo - Provide `PassioFoodDataInfo` object get `PassioFoodItem` detail.
+   * @param weightGram - Provide `weightGram` number to get `PassioFoodItem` detail.
    * @returns A `Promise` resolving to `PassioFoodItem` detail.
    */
   fetchFoodItemForDataInfo(
-    passioFoodDataInfo: PassioFoodDataInfo
+    passioFoodDataInfo: PassioFoodDataInfo,
+    weightGram?: number
   ): Promise<PassioFoodItem | null>
-
-  /**
-   * this method to fetch PassioAdvisorFoodInfo using Image (local image uri)
-   * @param imageUri - The image uri for recognizing Food.
-   * @returns A `Promise` resolving to a `PassioAdvisorFoodInfo` array or `null`.
-   */
 
   /**
    * Search the database of foods with a given search term.
@@ -123,13 +146,15 @@ export interface PassioSDKInterface {
    * Retrieving food info using image uri,
    * Smaller resolutions will result in faster response times
    * while higher resolutions should provide more accurate results
-   * @param imageUri - local image uri.
-   * @param resolution - enables the caller to set the target resolution of the image uploaded to the server
+   * @param imageUri - The local URI of the image.
+   * @param message - An optional message to indicate the context of the image.
+   * @param resolution - enables the caller to set the target resolution of the image uploaded to the server, Default is RES_512
    * @returns A `Promise` resolving to an array of `PassioAdvisorFoodInfo`.
    */
 
   recognizeImageRemote(
     imageUri: string,
+    message?: string,
     resolution?: PassioImageResolution
   ): Promise<PassioAdvisorFoodInfo[] | null>
 
@@ -266,6 +291,11 @@ export interface PassioSDKInterface {
   fetchPossibleIngredients(
     foodName: string
   ): Promise<PassioFetchAdvisorInfoResult>
+
+  /**
+   Only available on android for stop camera if available
+   */
+  stopCamera(): void
 }
 
 /**

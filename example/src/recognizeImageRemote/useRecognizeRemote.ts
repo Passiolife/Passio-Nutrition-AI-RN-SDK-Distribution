@@ -20,6 +20,7 @@ const useRecognizeRemote = ({}: Props) => {
         setPassioSpeechRecognitionModel(null)
         PassioSDK.recognizeImageRemote(
           assets?.[0].uri?.replace('file://', '') ?? '',
+          undefined,
           'RES_512'
         )
           .then(async (candidates) => {

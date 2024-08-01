@@ -4,6 +4,7 @@ import {
   CompletedDownloadingFile,
   DownloadingError,
   PassioSDK,
+  PassioTokenBudget,
 } from '@passiolife/nutritionai-react-native-sdk-v3'
 
 export type SDKStatus = 'init' | 'downloading' | 'error' | 'ready'
@@ -33,6 +34,11 @@ export const usePassioSDK = ({
             return
           case 'isReadyForDetection':
             setLoadingState('ready')
+            PassioSDK.setAccountListener({
+              onTokenBudgetUpdate: (tokenBudget: PassioTokenBudget) => {
+                console.log('tokenBudget', tokenBudget)
+              },
+            })
             return
           case 'error':
             console.error(`PassioSDK Error ${status.errorMessage}`)

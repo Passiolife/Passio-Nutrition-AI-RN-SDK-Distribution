@@ -289,6 +289,11 @@ fun WritableMap.putIfNotNull(key: String, value: ReadableMap?) {
     putMap(key, value)
   }
 }
+fun WritableMap.putIfNotNull(key: String, value: Float?) {
+  if (value != null) {
+    putDouble(key, value.toDouble())
+  }
+}
 
 fun WritableMap.putIfNotNull(key: String, value: ReadableArray?) {
   if (value != null) {
