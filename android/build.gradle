@@ -148,5 +148,5 @@ dependencies {
 
 
   // Passio SDK
-  compileOnly files("libs/passiolib-release.aar")
+  implementation fileTree(dir: "libs", include: ["*.aar"])
 }
