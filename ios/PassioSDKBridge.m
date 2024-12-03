@@ -6,6 +6,7 @@
 RCT_EXTERN_METHOD(configure:(NSString *)key
                   debugMode:(NSInteger)debugMode
                   autoUpdate:(BOOL)autoUpdate
+                  remoteOnly:(BOOL)remoteOnly
                   localModelURLs:(NSArray *)modelURLs
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
@@ -49,6 +50,11 @@ RCT_EXTERN_METHOD(searchForFood:(NSString *)searchQuery
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 
+RCT_EXTERN_METHOD(searchForFoodSemantic:(NSString *)term
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 RCT_EXTERN_METHOD(detectFoodFromImageURI: (NSString *)imageUri
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
@@ -60,19 +66,31 @@ RCT_EXTERN_METHOD(recognizeImageRemote: (NSString *)imageUri
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(addToPersonalization: (NSString *)visualCadidate
-                  (NSString *)alternative)
 
-RCT_EXTERN_METHOD(fetchTagsFor: (NSString *)passioID
+
+RCT_EXTERN_METHOD(recognizeNutritionFactsRemote: (NSString *)imageUri
+                  resolution: (NSString *)resolution
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(fetchNutrientsFor:(NSString *)passioID
+RCT_EXTERN_METHOD(addToPersonalization: (NSString *)visualCadidate
+                  (NSString *)alternative)
+
+RCT_EXTERN_METHOD(fetchTagsFor: (NSString *)refCode
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(updateLanguage: (NSString *)languageCode
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchNutrientsFor:(NSString *)refCode
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(fetchFoodItemForDataInfo:(NSString *)searchResult
-                  weightGram:(NSString *)weightGram
+                  servingQuantity:(NSString *)servingQuantity
+                  servingUnit:(NSString *)servingUnit
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
@@ -130,6 +148,22 @@ RCT_EXTERN_METHOD(setCameraVideoZoom:(CGFloat)toVideoZoomFactor)
 RCT_EXTERN_METHOD(setTapToFocus:(NSString *)pointOfInterest)
 
 RCT_EXTERN_METHOD(getMinMaxCameraZoomLevel:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(reportFoodItem:(NSString *)refCode
+                  productCode:(NSString *)productCode
+                  notes:(NSString *)notes
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
+RCT_EXTERN_METHOD(submitUserCreatedFood:(NSString *)passioFoodItem
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+                  
+                  
+RCT_EXTERN_METHOD(predictNextIngredients:(NSString *)ingredientsJson
+                  withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 @end

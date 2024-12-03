@@ -65,12 +65,16 @@ export const FoodSearchView = (props: Props) => {
               {'fat ' + Math.round(item.nutritionPreview?.fat ?? 0)}
             </Text>
             <Text style={styles.itemBrandName}>
-              {' | protein ' + Math.round(item.nutritionPreview?.protein ?? 0)}
+              {' | protein ' + item.nutritionPreview?.protein.toFixed(2)}
             </Text>
           </Text>
 
           <Text style={styles.itemBrandName}>
-            {'carbs ' + Math.round(item.nutritionPreview?.carbs ?? 0)}
+            {'carbs ' + item.nutritionPreview?.carbs.toFixed(2)}
+          </Text>
+
+          <Text style={styles.itemBrandName}>
+            {'fiber ' + item.nutritionPreview?.fiber.toFixed(2)}
           </Text>
         </View>
       </TouchableOpacity>

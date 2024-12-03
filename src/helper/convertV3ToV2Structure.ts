@@ -104,6 +104,7 @@ export const convertPassioIngredientV3ToPassioFoodItemV2 = (
       iconId: foodItem.iconId,
       amount: foodItem.amount,
       ingredientWeight: foodItem.weight,
+      refCode: '',
     })
 
     const item: PassioFoodItemV2 = {

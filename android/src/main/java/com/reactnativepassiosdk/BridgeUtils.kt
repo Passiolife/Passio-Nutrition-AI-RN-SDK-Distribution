@@ -1,4 +1,3 @@
-
 import ai.passio.passiosdk.passiofood.BarcodeCandidate
 import ai.passio.passiosdk.passiofood.DetectedCandidate
 import ai.passio.passiosdk.passiofood.FoodCandidates
@@ -7,6 +6,7 @@ import ai.passio.passiosdk.passiofood.data.measurement.UnitEnergy
 import ai.passio.passiosdk.passiofood.data.measurement.UnitMass
 import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorFoodInfo
 import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorResponse
+import ai.passio.passiosdk.passiofood.data.model.PassioFoodResultType
 import ai.passio.passiosdk.passiofood.data.model.PassioMealPlan
 import ai.passio.passiosdk.passiofood.data.model.PassioMealPlanItem
 import ai.passio.passiosdk.passiofood.data.model.PassioResult
@@ -19,10 +19,12 @@ import android.graphics.RectF
 import android.util.Base64
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativepassiosdk.bridgePassioFoodDataInfo
+import com.reactnativepassiosdk.bridgePassioFoodItem
 import java.io.ByteArrayOutputStream
 
 fun bridgeFoodCandidates(candidates: FoodCandidates?): ReadableMap? {
@@ -98,10 +100,10 @@ fun bridgePassioMealPlan(passioMealPlan: PassioMealPlan): ReadableMap {
   return map
 }
 
-fun bridgeServingSize(servingSize: PassioServingSize): ReadableMap {
+fun bridgeServingSize(servingSize: PassioServingSize?): ReadableMap {
   val map = WritableNativeMap()
-  map.putDouble("quantity", servingSize.quantity)
-  map.putString("unitName", servingSize.unitName)
+  map.putDouble("quantity", servingSize?.quantity ?: 0.0)
+  map.putString("unitName", servingSize?.unitName)
   return map
 }
 
@@ -145,9 +147,12 @@ fun bridgeUnitEnergy(unitMass: UnitEnergy?): ReadableMap? {
 
 fun bridgeNutritionFacts(nutritionFacts: PassioNutritionFacts): ReadableMap {
   val map = WritableNativeMap()
-  map.putIfNotNull("servingSizeQuantity", nutritionFacts.servingSizeQuantity)
-  map.putIfNotNull("servingSizeUnit", nutritionFacts.servingSize)
-  map.putIfNotNull("servingSizeUnitName", nutritionFacts.servingSizeUnitName)
+  map.putIfNotNull("servingSizeQuantity", nutritionFacts.servingQuantity)
+  map.putIfNotNull("servingSizeUnit", nutritionFacts.servingUnit)
+  map.putIfNotNull("servingSizeGram", nutritionFacts.weightQuantity)
+
+  map.putIfNotNull("servingSizeUnitName", nutritionFacts.weightUnit)
+
   map.putIfNotNull("calories", nutritionFacts.calories)
   map.putIfNotNull("fat", nutritionFacts.fat)
   map.putIfNotNull("carbs", nutritionFacts.carbs)
@@ -157,6 +162,8 @@ fun bridgeNutritionFacts(nutritionFacts: PassioNutritionFacts): ReadableMap {
   map.putIfNotNull("cholesterol", nutritionFacts.cholesterol)
   map.putIfNotNull("sugarAlcohol", nutritionFacts.sugarAlcohol)
   map.putIfNotNull("sugars", nutritionFacts.sugars)
+
+  // sodium and dietaryFiber are  missing in android but available in ios.
   return map
 }
 
@@ -216,9 +223,28 @@ fun bridgePassioAdvisorFoodInfo(item: PassioAdvisorFoodInfo): ReadableMap {
   }
   map.putIfNotNull("weightGrams", item.weightGrams)
   map.putIfNotNull("recognisedName", item.recognisedName)
+
+  item.packagedFoodItem?.let {
+    map.putIfNotNull("packagedFoodItem", bridgePassioFoodItem(it))
+  }
+
+  when (item.resultType.name) {
+      PassioFoodResultType.FOOD_ITEM.name -> {
+        map.putIfNotNull("resultType", "foodItem")
+      }
+      PassioFoodResultType.NUTRITION_FACTS.name -> {
+        map.putIfNotNull("resultType", "nutritionFacts")
+      }
+      PassioFoodResultType.BARCODE.name -> {
+        map.putIfNotNull("resultType", "barcode")
+      }
+  }
+
   return map
 
 }
+
+
 
 fun bridgePassioAdvisorResponse(item: PassioAdvisorResponse): ReadableMap {
   val map = WritableNativeMap()
@@ -259,6 +285,9 @@ fun bridgePassioResultPassioAdvisorFoodInfos(result: PassioResult<List<PassioAdv
   }
   return map
 }
+
+
+
 
 fun WritableMap.putIfNotNull(key: String, value: Boolean?) {
   if (value != null) {
@@ -332,4 +361,14 @@ fun <T> mapStringArray(array: ReadableArray, map: (String) -> T): List<T> {
     mapped.add(map(str))
   }
   return mapped
+}
+
+fun ReadableArray.convertReadableArrayToList( ): List<String>? {
+  val list: MutableList<String> = ArrayList()
+  for (i in 0 until this.size()) {
+    if (this.getType(i) == ReadableType.String) {
+      list.add(this.getString(i))
+    }
+  }
+  return list
 }

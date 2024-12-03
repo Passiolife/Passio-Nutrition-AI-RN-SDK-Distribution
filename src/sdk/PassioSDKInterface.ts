@@ -9,6 +9,8 @@ import type {
   PassioAdvisorFoodInfo,
   PassioImageResolution,
   PassioFetchAdvisorInfoResult,
+  PassioResult,
+  PassioReport,
 } from '..'
 import type {
   Barcode,
@@ -38,6 +40,14 @@ export interface PassioSDKInterface {
    * @returns A `Promise` resolving with a `PassioStatus` indicating the current state of the SDK.
    */
   configure(options: ConfigurationOptions): Promise<PassioStatus>
+
+  /**
+   * Added support for localized content.
+   * with a two digit ISO 639-1 language code will transform the food names and serving sizes in the SDK responses
+   *
+   * @param languageCode - with a two digit ISO 639-1 language code
+   */
+  updateLanguage(languageCode: string): Promise<Boolean>
 
   /**
    * setAccountListener to track account usage updates. Used to monitor total monthly
@@ -125,22 +135,40 @@ export interface PassioSDKInterface {
   fetchFoodItemLegacy(passioID: PassioID): Promise<PassioFoodItem | null>
 
   /**
-   * Data info of the search food with a given search result.
+   * Data info of the food with a given result.
    * @param passioFoodDataInfo - Provide `PassioFoodDataInfo` object get `PassioFoodItem` detail.
-   * @param weightGram - Provide `weightGram` number to get `PassioFoodItem` detail.
+   * @param servingQuantity - Provide `servingQuantity` number to get `PassioFoodItem` detail.
+   * @param servingUnit - Provide `servingUnit` unit to get `PassioFoodItem` detail.
    * @returns A `Promise` resolving to `PassioFoodItem` detail.
    */
   fetchFoodItemForDataInfo(
     passioFoodDataInfo: PassioFoodDataInfo,
-    weightGram?: number
+    servingQuantity?: number,
+    servingUnit?: String
   ): Promise<PassioFoodItem | null>
 
   /**
    * Search the database of foods with a given search term.
    * @param searchQuery - The search term to match against food item names.
-   * @returns A `Promise` resolving to an array of food item names.
+   * @returns A `Promise` resolving to an array of food item result.
    */
   searchForFood(searchQuery: string): Promise<PassioSearchResult | null>
+
+  /**
+   * Search for food semantic will return a list of alternate search and search result
+   * @param searchQuery - User typed text.
+   * @returns A `Promise` resolving to an array of food item result.
+   */
+  searchForFoodSemantic(searchQuery: string): Promise<PassioSearchResult | null>
+
+  /**
+   * gives a list of predicted next ingredients based on the current list of ingredients in the recipe
+   * @param currentIngredients - List of food ingredients name.
+   * @returns A `Promise` resolving to an array of food data info.
+   */
+  predictNextIngredients(
+    currentIngredients: string[]
+  ): Promise<PassioFoodDataInfo[] | null>
 
   /**
    * Retrieving food info using image uri,
@@ -157,6 +185,20 @@ export interface PassioSDKInterface {
     message?: string,
     resolution?: PassioImageResolution
   ): Promise<PassioAdvisorFoodInfo[] | null>
+
+  /**
+   * Retrieving nutrition facts using image uri,
+   * Smaller resolutions will result in faster response times
+   * while higher resolutions should provide more accurate results
+   * @param imageUri - The local URI of the image.
+   * @param resolution - enables the caller to set the target resolution of the image uploaded to the server, Default is RES_512
+   * @returns A `Promise` resolving to an array of `PassioFoodItem`.
+   */
+
+  recognizeNutritionFactsRemote(
+    imageUri: string,
+    resolution?: PassioImageResolution
+  ): Promise<PassioFoodItem | null>
 
   /**
    * Use this method to fetch PassioSpeechRecognitionModel using speech.
@@ -178,13 +220,6 @@ export interface PassioSDKInterface {
   ) => Callback
 
   /**
-   * This method detect food from image uri.
-   * @param imageUri - The image uri to detect food.
-   * @returns A `Promise` resolving to a `FoodCandidates` object if the record exists in the database or `null` if not.
-   */
-  detectFoodFromImageURI(imageUri: string): Promise<FoodCandidates | null>
-
-  /**
    * This method adds personalized alternative to local database.
    * Status: This method is experimental and only available in the iOS SDK.
    * @param personalizedAlternative - The personalized alternative to add.
@@ -196,18 +231,18 @@ export interface PassioSDKInterface {
   ): boolean
 
   /**
-   * This method fetches tags for a given Passio ID.
-   * @param passioID - The Passio ID for the tags query.
+   * This method fetches tags for a given refCode.
+   * @param refCode - The refCode for the tags query.
    * @returns A `string` array of tags if the record exists in the database or `null` if not.
    */
-  fetchTagsForPassioID(passioID: PassioID): Promise<string[]>
+  fetchTagsFor(refCode: RefCode): Promise<string[]>
 
   /**
    * fetch a map of nutrients for a 100 grams of a specific food item
-   * @param passioID - The Passio ID for the attributes query.
+   * @param refCode - The refCode for the attributes query.
    * @returns A `Promise` resolving to a `PassioNutrient` object if the record exists in the database or `null` if not.
    */
-  fetchNutrientsFor(passioID: PassioID): Promise<PassioNutrient[] | null>
+  fetchNutrientsFor(refCode: RefCode): Promise<PassioNutrient[] | null>
 
   /**
    * It retrieves all the nutrients by summing the reference nutrients of ingredients with the help of selectedUnit and selectedQuantity
@@ -293,9 +328,34 @@ export interface PassioSDKInterface {
   ): Promise<PassioFetchAdvisorInfoResult>
 
   /**
+   * Use this method to report incorrect food item
+   * Precondition: Either `refCode` or `productCode` must be present
+   * @param refCode - Reference code of food item
+   * @param productCode - Product code
+   * @param notes - Note if any (optional)
+   * @returns It returns `PassioResult` that can be either an `errorMessage` or the `boolean` noting the success of the operation.
+   */
+  reportFoodItem(report: PassioReport): Promise<PassioResult>
+
+  /**
+   * Use this method to submit User Created Food. The method will return `true` if the uploading of user food is successful
+   * @param passioFoodItem - Pass ``PassioFoodItem`` to submit it to Passio
+   * @returns It returns `PassioResult` that can be either an `errorMessage` or the `boolean` noting the success of the operation.
+   */
+  submitUserCreatedFood(passioFoodItem: PassioFoodItem): Promise<PassioResult>
+
+  /**
    Only available on android for stop camera if available
    */
   stopCamera(): void
+
+  /** [DEPRECATED]
+   * Alternatively, use the `recognizeImageRemote` method to recognize the image
+   * This method detect food from image uri.
+   * @param imageUri - The image uri to detect food.
+   * @returns A `Promise` resolving to a `FoodCandidates` object if the record exists in the database or `null` if not.
+   */
+  detectFoodFromImageURI(imageUri: string): Promise<FoodCandidates | null>
 }
 
 /**

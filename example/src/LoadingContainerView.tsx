@@ -30,6 +30,9 @@ import { RecognizeImageRemote } from './recognizeImageRemote'
 import { RecognizeTextRemote } from './recognizeTextRemote'
 import { LegacyAPITest } from './legacyAPITest'
 import { ChatScreen } from './chat'
+import { RecognizeNutritionFactsRemote } from './recognizeNutritionFactsRemote'
+import { UpdateLanguage } from './updateLangauge'
+import { SemanticSearchView } from './semanticSearch'
 
 type ViewType =
   | 'Scan'
@@ -41,8 +44,11 @@ type ViewType =
   | 'MealPlan'
   | 'NutritionFact'
   | 'recognizeImageRemote'
+  | 'recognizeNutritionFactsRemote'
+  | 'updateLanguage'
   | 'recognizeTextRemote'
   | 'legacyAPI'
+  | 'SemanticSearch'
   | 'Chat'
 
 const logo = require('./assets/passio_logo.png')
@@ -77,8 +83,20 @@ export const LoadingContainerView = () => {
     setViewType('recognizeTextRemote')
   }, [])
 
+  const onRecognizeNutritionFactsRemote = useCallback(() => {
+    setViewType('recognizeNutritionFactsRemote')
+  }, [])
+
+  const onUpdateLanguage = useCallback(() => {
+    setViewType('updateLanguage')
+  }, [])
+
   const onLegacyAPI = useCallback(() => {
     setViewType('legacyAPI')
+  }, [])
+
+  const onSemanticSearch = useCallback(() => {
+    setViewType('SemanticSearch')
   }, [])
 
   const onScanImage = useCallback(async () => {
@@ -167,6 +185,13 @@ export const LoadingContainerView = () => {
                 onFoodDetail={setPassioFoodItem}
               />
             )
+          case 'SemanticSearch':
+            return (
+              <SemanticSearchView
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
           case 'Suggestion':
             return (
               <FoodSuggestion
@@ -193,6 +218,13 @@ export const LoadingContainerView = () => {
           case 'recognizeImageRemote':
             return (
               <RecognizeImageRemote
+                onClose={onBackToHome}
+                onFoodDetail={setPassioFoodItem}
+              />
+            )
+          case 'recognizeNutritionFactsRemote':
+            return (
+              <RecognizeNutritionFactsRemote
                 onClose={onBackToHome}
                 onFoodDetail={setPassioFoodItem}
               />
@@ -224,6 +256,8 @@ export const LoadingContainerView = () => {
             )
           case 'Chat':
             return <ChatScreen onClose={onBackToHome} />
+          case 'updateLanguage':
+            return <UpdateLanguage onClose={onBackToHome} />
 
           default:
             // Handle invalid viewType or provide a default view
@@ -244,6 +278,11 @@ export const LoadingContainerView = () => {
                 onNutritionFact={onNutritionFact}
                 onRecognizeImageRemote={onRecognizeImageRemote}
                 onRecognizeTextRemote={onRecognizeTextRemote}
+                onSemanticSearch={onSemanticSearch}
+                onUpdateLanguage={onUpdateLanguage}
+                onRecognizeNutritionFactsRemote={
+                  onRecognizeNutritionFactsRemote
+                }
                 onLegacyAPI={onLegacyAPI}
                 onChat={onChat}
               />
@@ -292,9 +331,12 @@ const LoadingView = (props: {
   onNutritionFact: () => void
   onRecognizeImageRemote: () => void
   onRecognizeTextRemote: () => void
+  onUpdateLanguage: () => void
+  onRecognizeNutritionFactsRemote: () => void
   onLegacyAPI: () => void
   onMultiScanning: () => void
   onQuickScanning: () => void
+  onSemanticSearch: () => void
   onChat: () => void
 }) => {
   return (
@@ -322,6 +364,10 @@ const LoadingView = (props: {
             <>
               <View style={styles.space} />
               <FeatureButton title="Text Search" onClick={props.onSearchFood} />
+              <FeatureButton
+                title="Semantic Text Search"
+                onClick={props.onSemanticSearch}
+              />
               {props.status === 'ready' && props.cameraAuthorized ? (
                 <>
                   <FeatureButton
@@ -341,8 +387,16 @@ const LoadingView = (props: {
                     onClick={props.onRecognizeTextRemote}
                   />
                   <FeatureButton
+                    title="Update Language"
+                    onClick={props.onUpdateLanguage}
+                  />
+                  <FeatureButton
                     title="Recognize Image Remote"
                     onClick={props.onRecognizeImageRemote}
+                  />
+                  <FeatureButton
+                    title="Recognize Nutrition Facts Remote"
+                    onClick={props.onRecognizeNutritionFactsRemote}
                   />
                   <FeatureButton
                     title="Multi Scan (Only visual food)"

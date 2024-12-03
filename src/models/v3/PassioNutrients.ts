@@ -76,4 +76,6 @@ export interface PassioNutrients {
   vitaminKDihydrophylloquinone?: UnitMass
   /** The amount of added chromium. */
   chromium?: UnitMass
+  /** The amount of added vitaminARAE. */
+  vitaminARAE?: UnitMass
 }

@@ -1,2 +1,3 @@
-export const PASSIO_KEY = ''
-export const PASSIO_ADVISOR_KEY = ''
+import { GLOBAL_PASSIO_KEY } from '../../key'
+
+export const PASSIO_KEY = GLOBAL_PASSIO_KEY

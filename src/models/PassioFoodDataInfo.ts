@@ -22,4 +22,8 @@ export interface PassioFoodDataInfo {
   type?: string
   // Property for indicating whether to use short name for the info
   isShortName?: boolean
+  // tags
+  tags?: string
+  // unique id of passio food data info
+  refCode: string
 }

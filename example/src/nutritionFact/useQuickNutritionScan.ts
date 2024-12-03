@@ -22,6 +22,7 @@ export const useQuickNutritionScan = () => {
 
       if (facts !== undefined) {
         setNutritionFacts(facts)
+        console.log('Nutrition Fact', JSON.stringify(facts))
         return
       }
       setLoading(false)

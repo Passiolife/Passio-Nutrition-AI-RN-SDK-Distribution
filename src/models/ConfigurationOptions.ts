@@ -32,4 +32,11 @@ export type ConfigurationOptions = {
    */
 
   localModelURLs?: string[]
+
+  /**
+   * Added remoteOnly flag to the PassioConfiguration class.
+   * With this flag enabled, the SDK won't download the files needed for local recognition. In this case only remote recognition is possible
+   * default: false
+   */
+  remoteOnly?: boolean
 }

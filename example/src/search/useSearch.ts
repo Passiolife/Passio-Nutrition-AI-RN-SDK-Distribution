@@ -75,8 +75,20 @@ const useFoodSearch = ({ onFoodDetail }: Props) => {
   const onSearchResultItemPress = useCallback(
     async (foodSearchResult: PassioFoodDataInfo) => {
       // Achieved Result through `fetchSearchResult`
-      const result = await PassioSDK.fetchFoodItemForDataInfo(foodSearchResult)
+      console.log(
+        'foodSearchResult=========>',
+        JSON.stringify(foodSearchResult)
+      )
+      const result = await PassioSDK.fetchFoodItemForDataInfo(
+        foodSearchResult,
+        foodSearchResult.nutritionPreview?.servingQuantity,
+        foodSearchResult?.nutritionPreview?.servingUnit
+      )
       if (result) {
+        console.log(
+          'foodSearchResult=========>result====>',
+          JSON.stringify(result)
+        )
         onFoodDetail(result)
       }
     },
