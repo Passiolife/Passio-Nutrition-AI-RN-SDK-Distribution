@@ -6,6 +6,7 @@
   "scripts": {
     "android": "adb reverse tcp:8081 tcp:8081 && react-native start",
     "ios": "react-native run-ios",
+     "postinstall": "patch-package",
     "bundle-ios": "react-native bundle --dev false --entry-file index.js --bundle-output ios/main.jsbundle --platform ios",
     "start": "react-native start",
     "adb-tcp": "adb reverse tcp:8081 tcp:8081",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@gorhom/bottom-sheet": "^4.6.1",
     "@passiolife/nutritionai-react-native-sdk-v3": "link:../",
+    "patch-package": "^8.0.0",
     "react": "17.0.2",
     "react-native": "0.68.5",
     "react-native-gesture-handler": "^2.15.0",

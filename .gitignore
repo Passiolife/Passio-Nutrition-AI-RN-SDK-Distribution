@@ -61,3 +61,12 @@ lib/
 main.jsbundle
 *.bundle
 example/android/app/release
+src/key/index.tsx
+example/src/key/index.tsx
+example/src/key/index.ts
+ios/Pods/
+example/src/key/key.ts
+example/android/.project
+example/android/.settings/org.eclipse.buildship.core.prefs
+example/key.ts
+example/key/index.ts

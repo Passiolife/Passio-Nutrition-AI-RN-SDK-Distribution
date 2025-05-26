@@ -1,3 +1,5 @@
+import type { Proxy } from './Proxy'
+
 /**
  * An object defining the configuration options for the Passio SDK
  */
@@ -32,4 +34,21 @@ export type ConfigurationOptions = {
    */
 
   localModelURLs?: string[]
+
+  /**
+   * Added remoteOnly flag to the PassioConfiguration class.
+   * With this flag enabled, the SDK won't download the files needed for local recognition. In this case only remote recognition is possible
+   * default: false
+   */
+  remoteOnly?: boolean
+
+  /**
+   *  If you set allowInternetConnection = false without working with Passio the SDK will not work. The SDK will not connect to the internet for key validations, barcode data and packaged food data.
+   */
+  allowInternetConnection?: boolean
+
+  /**
+   *  proxy configuration will serve as the base URL for all API calls within the SDK.
+   */
+  proxy?: Proxy
 }

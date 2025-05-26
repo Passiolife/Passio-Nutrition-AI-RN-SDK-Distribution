@@ -3,4 +3,5 @@ export interface PassioTokenBudget {
   periodUsage: number
   requestUsage: number
   usedPercent: number
+  apiName: string
 }

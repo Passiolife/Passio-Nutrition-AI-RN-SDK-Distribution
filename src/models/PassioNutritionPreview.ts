@@ -11,6 +11,8 @@ export interface PassioNutritionPreview {
   protein: number
   // Property for the fat of the food
   fat: number
+  // Property for the fiber of the food
+  fiber: number
   // Property for the weight unit of the food
   weightUnit: string
   // Property for the weight quantity of the food

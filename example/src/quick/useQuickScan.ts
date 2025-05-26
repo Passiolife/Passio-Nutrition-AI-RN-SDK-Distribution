@@ -84,12 +84,12 @@ export const useQuickScan = () => {
     // Configuration for food detection
     const config: FoodDetectionConfig = {
       detectBarcodes: true,
-      detectPackagedFood: true,
-      detectVisual: true,
-      volumeDetectionMode: 'auto',
+      detectPackagedFood: false,
+      detectVisual: false,
     }
 
     // Start food detection and subscribe to events
+    console.log('Starting food detection')
     const subscription = PassioSDK.startFoodDetection(
       config,
       handleFoodDetection

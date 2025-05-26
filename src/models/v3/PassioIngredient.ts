@@ -5,7 +5,7 @@ import type { PassioNutrients } from './PassioNutrients'
 
 export interface PassioIngredient {
   // Reference code of Passio food item
-  refCode?: RefCode
+  refCode: RefCode
   /** The name of the ingredient. */
   name: string
   /** The unique identifier of the ingredient. */

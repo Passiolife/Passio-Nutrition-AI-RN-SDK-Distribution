@@ -39,10 +39,16 @@ const FoodDetail = (props: Props) => {
     textInputServingQty,
     foodNutrients,
     showAddIngredients,
+    predictNextIngredients,
     onAddIngredients,
     passioFoodItem,
     closeAddIngredients,
     isAddIngredients,
+    onReport,
+    onSubmitUserCreatedFood,
+    onFetchNutrientsFor,
+    onFetchTagsFor,
+    score,
   } = useFoodDetail(props)
 
   const nutrients = foodNutrients
@@ -247,6 +253,24 @@ const FoodDetail = (props: Props) => {
             <View style={styles.line} />
             <View style={styles.line} />
             <View style={styles.line} />
+            <TouchableOpacity onPress={onReport}>
+              <Text>Submit Report </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onSubmitUserCreatedFood}>
+              <Text>SubmitUserCreatedFood </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onFetchNutrientsFor}>
+              <Text>onFetchNutrientsFor </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onFetchTagsFor}>
+              <Text>onFetchTagsFor </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={predictNextIngredients}>
+              <Text>predictNextIngredients </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={score}>
+              <Text>Score </Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>

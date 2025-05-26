@@ -33,15 +33,11 @@ public class DetectionCameraView: UIView {
     }
 
     private func setupPreview() {
-        guard let config = config,
-              let volumeDetectionModeString = config["volumeDetectionMode"] as? String,
-              let volumeDetectionMode = VolumeDetectionMode(rawValue: volumeDetectionModeString) else {
-            return
-        }
+     
 
         previewLayer?.removeFromSuperlayer()
         
-        self.previewLayer = PassioNutritionAI.shared.getPreviewLayerWithGravity(volumeDetectionMode: volumeDetectionMode, videoGravity: .resizeAspectFill)
+        self.previewLayer = PassioNutritionAI.shared.getPreviewLayerWithGravity(videoGravity: .resizeAspectFill)
         
         guard let previewLayer = previewLayer else {
             return
@@ -57,17 +53,3 @@ public class DetectionCameraView: UIView {
     }
 }
 
-extension VolumeDetectionMode {
-    init?(rawValue: String) {
-        switch rawValue {
-        case "auto":
-            self = .auto
-        case "dualWideCamera":
-            self = .dualWideCamera
-        case "none":
-            self = .none
-        default:
-            self = .auto
-        }
-    }
-}

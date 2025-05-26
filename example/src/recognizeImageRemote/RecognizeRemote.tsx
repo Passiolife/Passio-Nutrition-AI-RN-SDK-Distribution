@@ -38,12 +38,16 @@ export const RecognizeImageRemote = (props: Props) => {
       <TouchableOpacity
         style={styles.itemContainer}
         onPress={async () => {
-          if (item.foodDataInfo) {
-            const dataInfo = await PassioSDK.fetchFoodItemForDataInfo(
-              item?.foodDataInfo
-            )
-            if (dataInfo) {
-              props.onFoodDetail(dataInfo)
+          if (item.packagedFoodItem) {
+            props.onFoodDetail(item.packagedFoodItem)
+          } else {
+            if (item.foodDataInfo) {
+              const dataInfo = await PassioSDK.fetchFoodItemForDataInfo(
+                item?.foodDataInfo
+              )
+              if (dataInfo) {
+                props.onFoodDetail(dataInfo)
+              }
             }
           }
         }}

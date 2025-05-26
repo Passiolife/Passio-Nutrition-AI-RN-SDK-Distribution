@@ -1,24 +1,23 @@
 import type {
   ConfigurationOptions,
-  FoodDetectionEvent,
   PassioID,
   Barcode,
   RefCode,
   PassioStatus,
-  FoodDetectionConfig,
   PackagedFoodCode,
   CompletedDownloadingFile,
   DownloadModelCallBack,
   DownloadingError,
-  FoodCandidates,
   PassioNutrient,
   PassioFoodDataInfo,
   UnitMass,
   DetectedCandidate,
-  NutritionDetectionEvent,
   PassioAccountListener,
   PassioTokenBudget,
   PassioCameraZoomLevel,
+  FoodDetectionConfig,
+  FoodDetectionEvent,
+  NutritionDetectionEvent,
 } from '../models'
 import type {
   Callback,
@@ -38,6 +37,11 @@ import type {
   PassioSpeechRecognitionModel,
   PassioImageResolution,
   PassioFetchAdvisorInfoResult,
+  PassioResult,
+  PassioReport,
+  PassioUPFRatingResult,
+  PassioGeneratedMealPlanResult,
+  PassioRecognitionResult,
 } from '..'
 import { PassioFoodItemNutrients } from '../models/v3/Nutrients'
 
@@ -57,12 +61,18 @@ export const PassioSDK: PassioSDKInterface = {
       : 0
     const autoUpdate = options.autoUpdate || false
     const modelURLs = options.localModelURLs || null
+    const remoteOnly = options.remoteOnly || false
+    const allowInternetConnection = options.allowInternetConnection || true
 
     return PassioSDKBridge.configure(
       options.key,
       debugMode,
       autoUpdate,
-      modelURLs
+      remoteOnly,
+      modelURLs,
+      allowInternetConnection,
+      options?.proxy?.proxyUrl,
+      options?.proxy?.proxyHeaders
     )
   },
 
@@ -139,26 +149,13 @@ export const PassioSDK: PassioSDKInterface = {
         console.error('Error in Passio food detection callback: ', err)
       }
     })
-    const {
+    const { detectBarcodes, detectPackagedFood, detectVisual } = options
+
+    PassioSDKBridge.startFoodDetection(
       detectBarcodes,
       detectPackagedFood,
-      volumeDetectionMode,
-      detectVisual,
-    } = options
-    if (Platform.OS === 'ios') {
-      PassioSDKBridge.startFoodDetection(
-        detectBarcodes,
-        detectPackagedFood,
-        volumeDetectionMode ?? 'auto',
-        detectVisual ?? true
-      )
-    } else {
-      PassioSDKBridge.startFoodDetection(
-        detectBarcodes,
-        detectPackagedFood, //ocr required for nutrition fact scanning
-        detectVisual ?? true
-      )
-    }
+      detectVisual ?? true
+    )
 
     return {
       remove: () => {
@@ -234,6 +231,24 @@ export const PassioSDK: PassioSDKInterface = {
     return PassioSDKBridge.fetchFoodItemLegacy(passioID)
   },
 
+  async generateMealPlan(
+    request: String
+  ): Promise<PassioGeneratedMealPlanResult> {
+    return Platform.OS === 'android'
+      ? PassioSDKBridge.generateMealPlan(JSON.stringify({ request: request }))
+      : PassioSDKBridge.generateMealPlan(request)
+  },
+
+  async generateMealPlanPreview(
+    request: String
+  ): Promise<PassioGeneratedMealPlanResult> {
+    return Platform.OS === 'android'
+      ? PassioSDKBridge.generateMealPlanPreview(
+          JSON.stringify({ request: request })
+        )
+      : PassioSDKBridge.generateMealPlanPreview(request)
+  },
+
   async recognizeSpeechRemote(
     text: string
   ): Promise<PassioSpeechRecognitionModel[] | null> {
@@ -249,7 +264,47 @@ export const PassioSDK: PassioSDKInterface = {
       return PassioSDKBridge.recognizeImageRemote(
         imageUri,
         message,
-        resolution ?? 'RES_512'
+        resolution ?? 'RES_1080'
+      )
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+
+  async recognizeSpeechRemoteWithGrouping(
+    text: string
+  ): Promise<PassioRecognitionResult | null> {
+    try {
+      return PassioSDKBridge.recognizeSpeechRemoteWithGrouping(text)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+
+  async recognizeImageRemoteWithGrouping(
+    imageUri: string,
+    message?: string,
+    resolution?: PassioImageResolution
+  ): Promise<PassioRecognitionResult | null> {
+    try {
+      return PassioSDKBridge.recognizeImageRemoteWithGrouping(
+        imageUri,
+        message,
+        resolution ?? 'RES_1080'
+      )
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+
+  async recognizeNutritionFactsRemote(
+    imageUri: string,
+    resolution?: PassioImageResolution
+  ): Promise<PassioFoodItem | null> {
+    try {
+      return PassioSDKBridge.recognizeNutritionFactsRemote(
+        imageUri,
+        resolution ?? 'RES_1080'
       )
     } catch (err) {
       return Promise.reject(err)
@@ -258,6 +313,16 @@ export const PassioSDK: PassioSDKInterface = {
 
   async searchForFood(searchQuery: string): Promise<PassioSearchResult | null> {
     return PassioSDKBridge.searchForFood(searchQuery)
+  },
+
+  async searchForFoodSemantic(
+    searchQuery: string
+  ): Promise<PassioSearchResult | null> {
+    return PassioSDKBridge.searchForFoodSemantic(searchQuery)
+  },
+
+  async updateLanguage(languageCode: string): Promise<Boolean> {
+    return PassioSDKBridge.updateLanguage(languageCode)
   },
 
   async fetchSuggestions(
@@ -285,16 +350,6 @@ export const PassioSDK: PassioSDKInterface = {
     return new PassioFoodItemNutrients(passioFoodItem).nutrientsReference()
   },
 
-  async detectFoodFromImageURI(
-    imageUri: string
-  ): Promise<FoodCandidates | null> {
-    try {
-      return PassioSDKBridge.detectFoodFromImageURI(imageUri)
-    } catch (err) {
-      return Promise.reject(err)
-    }
-  },
-
   addToPersonalization(
     visualCandidate: DetectedCandidate,
     alternative: DetectedCandidate
@@ -307,48 +362,82 @@ export const PassioSDK: PassioSDKInterface = {
     )
   },
 
-  async fetchTagsForPassioID(passioID: PassioID): Promise<string[]> {
-    const attributes = await PassioSDKBridge.getAttributesForPassioID(
-      passioID
-    ).catch(() => {
-      Promise.reject('Error fetching attributes for passioID')
-    })
-    if (attributes?.foodItem?.tags) {
-      return attributes?.foodItem?.tags
-    }
-    const fetchedTags = await PassioSDKBridge.fetchTagsFor(
-      `${attributes?.foodItem?.passioID}`
-    ).catch(() => {
-      Promise.reject('Error fetching tags for passioID')
-    })
+  async fetchTagsFor(refCode: RefCode): Promise<string[]> {
+    const fetchedTags = await PassioSDKBridge.fetchTagsFor(refCode).catch(
+      () => {
+        Promise.reject('Error fetching tags for passioID')
+      }
+    )
     return fetchedTags
   },
 
   fetchNutrientsFor: function (
-    passioID: string
+    refCode: RefCode
   ): Promise<PassioNutrient[] | null> {
-    return PassioSDKBridge.fetchNutrientsFor(passioID)
+    return PassioSDKBridge.fetchNutrientsFor(refCode)
+  },
+
+  reportFoodItem: function (report: PassioReport): Promise<PassioResult> {
+    const refCode = report.refCode
+    const productCode = report.productCode
+    const notes = report.notes
+
+    return PassioSDKBridge.reportFoodItem(
+      refCode ?? '',
+      productCode ?? '',
+      JSON.stringify(notes ?? [])
+    )
   },
 
   async fetchFoodItemForDataInfo(
     queryResult: PassioFoodDataInfo,
-    weightGram?: number
+    servingQuantity?: number,
+    servingUnit?: String
   ): Promise<PassioFoodItem | null> {
     // -1 is considered an invalid value for weight in grams.
     if (Platform.OS === 'android') {
       return PassioSDKBridge.fetchFoodItemForDataInfo(
         queryResult,
-        weightGram ?? -1
+        servingQuantity ?? -1,
+        servingUnit
       )
     } else {
       return PassioSDKBridge.fetchFoodItemForDataInfo(
         JSON.stringify(queryResult),
-        (weightGram ?? -1).toString()
+        (servingQuantity ?? -1).toString(),
+        servingUnit
       )
     }
   },
+
   async fetchMealPlans(): Promise<PassioMealPlan[] | null> {
     return PassioSDKBridge.fetchMealPlans()
+  },
+
+  async submitUserCreatedFood(
+    passioFoodItem: PassioFoodItem
+  ): Promise<PassioResult> {
+    // -1 is considered an invalid value for weight in grams.
+    if (Platform.OS === 'android') {
+      return PassioSDKBridge.submitUserCreatedFood(passioFoodItem)
+    } else {
+      return PassioSDKBridge.submitUserCreatedFood(
+        JSON.stringify(passioFoodItem)
+      )
+    }
+  },
+
+  async predictNextIngredients(
+    currentIngredients: string[]
+  ): Promise<PassioFoodDataInfo[] | null> {
+    // -1 is considered an invalid value for weight in grams.
+    if (Platform.OS === 'android') {
+      return PassioSDKBridge.predictNextIngredients(currentIngredients)
+    } else {
+      return PassioSDKBridge.predictNextIngredients(
+        JSON.stringify(currentIngredients)
+      )
+    }
   },
 
   fetchMealPlanForDay: function (
@@ -364,6 +453,18 @@ export const PassioSDK: PassioSDKInterface = {
     return PassioSDKBridge.fetchHiddenIngredients(foodName)
   },
 
+  async fetchUltraProcessingFoodRating(
+    passioFoodItem: PassioFoodItem
+  ): Promise<PassioUPFRatingResult> {
+    if (Platform.OS === 'android') {
+      return PassioSDKBridge.fetchUltraProcessingFoodRating(passioFoodItem)
+    } else {
+      return PassioSDKBridge.fetchUltraProcessingFoodRating(
+        JSON.stringify(passioFoodItem)
+      )
+    }
+  },
+
   async fetchVisualAlternatives(
     foodName: string
   ): Promise<PassioFetchAdvisorInfoResult> {
@@ -373,7 +474,7 @@ export const PassioSDK: PassioSDKInterface = {
   async fetchPossibleIngredients(
     foodName: string
   ): Promise<PassioFetchAdvisorInfoResult> {
-    return PassioSDKBridge.fetchVisualAlternatives(foodName)
+    return PassioSDKBridge.fetchPossibleIngredients(foodName)
   },
 
   stopCamera() {

@@ -32,8 +32,13 @@ const useRecognizeTextRemote = ({ onFoodDetail }: Props) => {
 
         try {
           // Fetch food results from the PassioSDK based on the query
-          const searchFoods = await PassioSDK.recognizeSpeechRemote(query)
-          setPassioSpeechRecognitionModel(searchFoods)
+          const searchFoods = await PassioSDK.recognizeSpeechRemoteWithGrouping(
+            query
+          )
+          if (searchFoods?.status === 'Success') {
+            onFoodDetail(searchFoods?.response?.items[0]?.foodItem)
+          }
+          // setPassioSpeechRecognitionModel(searchFoods)
         } catch (error) {
           // Handle errors, e.g., network issues or API failures
           setPassioSpeechRecognitionModel([])
@@ -46,6 +51,7 @@ const useRecognizeTextRemote = ({ onFoodDetail }: Props) => {
         cleanSearch()
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [cleanSearch]
   )
 

@@ -148,6 +148,81 @@ export const useFoodDetail = (prop: Props) => {
       return { ...foodItem }
     })
   }
+  const onReport = () => {
+    const foodItem = prop.passioFoodItem
+    PassioSDK.reportFoodItem({
+      refCode: foodItem.refCode ?? '',
+      notes: ['testing', 'react-native'],
+      productCode: '',
+    }).then((result) => {
+      if (result.status === 'Error') {
+        console.warn(result.message)
+      } else {
+        console.warn(result.response)
+      }
+    })
+  }
+  const onFetchTagsFor = () => {
+    const foodItem = prop.passioFoodItem
+    PassioSDK.fetchTagsFor(foodItem.refCode).then((result) => {
+      console.warn(result)
+    })
+  }
+  const onFetchNutrientsFor = () => {
+    const foodItem = prop.passioFoodItem
+    PassioSDK.fetchNutrientsFor(foodItem.refCode).then((result) => {
+      console.warn(result)
+    })
+  }
+  const onSubmitUserCreatedFood = () => {
+    const foodItem = prop.passioFoodItem
+    console.log('submitUserCreatedFood==Before', JSON.stringify(foodItem))
+    PassioSDK.submitUserCreatedFood(JSON.parse(JSON.stringify(foodItem))).then(
+      (result) => {
+        console.log('submitUserCreatedFood==', JSON.stringify(result))
+        if (result.status === 'Error') {
+          console.warn(result.message)
+        } else {
+          console.warn(result.response)
+        }
+      }
+    )
+  }
+  const predictNextIngredients = () => {
+    const foodItem = prop.passioFoodItem
+    PassioSDK.predictNextIngredients(
+      foodItem.ingredients?.map((i) => {
+        return i.name
+      }) ?? []
+    ).then((result) => {
+      console.log(
+        'predictNextIngredients==params',
+        JSON.stringify(
+          foodItem.ingredients?.map((i) => {
+            return i.name
+          }) ?? []
+        )
+      )
+      console.log(
+        'predictNextIngredients==',
+        JSON.stringify(result?.map((i) => i.foodName))
+      )
+    })
+  }
+  const score = () => {
+    const foodItem = prop.passioFoodItem
+    PassioSDK.fetchUltraProcessingFoodRating(foodItem)
+      ?.then((result) => {
+        // eslint-disable-next-line prettier/prettier
+      console.log(
+          'result==',
+          JSON.stringify(result)
+        )
+      })
+      .catch((error) => {
+        console.warn('error==', JSON.stringify(error))
+      })
+  }
 
   return {
     calculatedWeight: passioFoodItem.amount?.weight.value,
@@ -161,6 +236,12 @@ export const useFoodDetail = (prop: Props) => {
     onServingSizeSelect,
     showAddIngredients,
     closeAddIngredients,
+    onReport,
+    onSubmitUserCreatedFood,
+    onFetchTagsFor,
+    onFetchNutrientsFor,
+    predictNextIngredients,
+    score,
     passioFoodItem,
     foodNutrients,
   }

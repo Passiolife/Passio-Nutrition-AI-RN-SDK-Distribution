@@ -16,11 +16,15 @@ class PassioSDKBridge: RCTEventEmitter {
     private let onPassioStatusChangedEventName = "onPassioStatusChanged"
     private let tokenBudgetUpdatedEVentName = "tokenBudgetUpdated"
     
-    @objc(configure:debugMode:autoUpdate:localModelURLs:withResolver:withRejecter:)
+  @objc(configure:debugMode:autoUpdate:remoteOnly:localModelURLs:allowInternetConnection:proxyUrl:proxyHeaders:withResolver:withRejecter:)
        func configure(key: String,
                       debugMode: Int,
                       autoUpdate: Bool,
+                      remoteOnly:Bool,
                       localModelURLs: [String]?,
+                      allowInternetConnection:Bool,
+                      proxyUrl: String?,
+                      proxyHeaders: [String : String]?,
                       resolve: @escaping RCTPromiseResolveBlock,
                       reject: @escaping RCTPromiseRejectBlock) -> Void {
            
@@ -30,7 +34,13 @@ class PassioSDKBridge: RCTEventEmitter {
            config.debugMode = debugMode
            config.sdkDownloadsModels = autoUpdate
            config.filesLocalURLs = localFiles
+           config.remoteOnly = remoteOnly
            config.bridge = .reactNative
+           
+           config.allowInternetConnection = allowInternetConnection
+           config.proxyUrl = proxyUrl
+           config.proxyHeaders = proxyHeaders
+         
            self.debugMode = debugMode == 0 ? false : true
            
            sdk.statusDelegate = self
@@ -114,24 +124,11 @@ class PassioSDKBridge: RCTEventEmitter {
          }
      }
         
-    @objc(startFoodDetection:detectPackagedFood:volumeDetectionMode:detectVisual:)
-    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,volumeDetectionMode:String?,detectVisual:Bool = true) {
-        
-        var mode = PassioNutritionAISDK.VolumeDetectionMode.auto
-        
-        if let detectionMode = volumeDetectionMode {
-            if(detectionMode == "auto"){
-                mode = PassioNutritionAISDK.VolumeDetectionMode.auto
-            }else  if(detectionMode == "dualWideCamera"){
-                mode = PassioNutritionAISDK.VolumeDetectionMode.dualWideCamera
-            }else  if(detectionMode == "none"){
-                mode = PassioNutritionAISDK.VolumeDetectionMode.none
-            }
-        }
+    @objc(startFoodDetection:detectPackagedFood:detectVisual:)
+    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,detectVisual:Bool = true) {
         
         let config = FoodDetectionConfiguration(
             detectVisual: detectVisual,
-            volumeDetectionMode: mode,
             detectBarcodes: detectBarcodes,
             detectPackagedFood: detectPackagedFood
         )
@@ -280,29 +277,49 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
         
+    } 
+    @objc(searchForFoodSemantic:withResolver:withRejecter:)
+    func searchForFoodSemantic(term: String,
+                       resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+        
+        
+        sdk.searchForFoodSemantic(searchTerm: term) { searchResponse in
+            
+            
+            if let searchResponse = searchResponse {
+                  resolve(bridgeSearchResponse(searchResponse))
+            } else {
+                resolve(NSNull())
+            }
+        }
+        
     }
     
     
     
     
-    @objc(fetchFoodItemForDataInfo:weightGram:withResolver:withRejecter:)
+    @objc(fetchFoodItemForDataInfo:servingQuantity:servingUnit:withResolver:withRejecter:)
     func fetchFoodItemForDataInfo(searchResult: String,
-                                  weightGram: String,
+                                  servingQuantity: String,
+                                  servingUnit: String,
                                   resolve: @escaping RCTPromiseResolveBlock,
                                   reject: @escaping RCTPromiseRejectBlock) {
         
         // Attempt to convert weightGram from String to Double
-        let weightGramDouble: Double?
-        if let weight = Double(weightGram), weight >= 0 {
-            weightGramDouble = weight
+        let servingQuantityDouble: Double?
+        if let quantity = Double(servingQuantity), quantity >= 0 {
+            servingQuantityDouble = quantity
         } else {
-            weightGramDouble = nil
+            servingQuantityDouble = nil
         }
+        
+       
         
         // Prepare the request body
         if let requestBody = preparePassioFoodDataInfo(searchResult) {
             // Fetch the food item
-            sdk.fetchFoodItemFor(foodItem: requestBody, weightGrams: weightGramDouble) { data in
+            sdk.fetchFoodItemFor(foodDataInfo: requestBody, servingQuantity: servingQuantityDouble,servingUnit:servingUnit) { data in
                 if let data = data {
                     // Resolve with the data if available
                     resolve(bridgePassioFoodItem(data))
@@ -351,6 +368,17 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
+    @objc(updateLanguage:withResolver:withRejecter:)
+    func updateLanguage(languageCode: String,
+                       resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+        
+       
+        let isUpdate = sdk.updateLanguage(languageCode: languageCode)
+        resolve(isUpdate)
+        
+    }
+    
     @objc(recognizeImageRemote:message:resolution:withResolver:withRejecter:)
     func recognizeImageRemote(imageUri: String,
                               message:String?,
@@ -384,6 +412,54 @@ class PassioSDKBridge: RCTEventEmitter {
          }
     }
     
+    @objc(recognizeNutritionFactsRemote:resolution:withResolver:withRejecter:)
+    func recognizeNutritionFactsRemote(imageUri: String,
+                                       resolution:String,
+                                       resolve: @escaping RCTPromiseResolveBlock,
+                                       reject: @escaping RCTPromiseRejectBlock) {
+        let image = UIImage(contentsOfFile: imageUri)
+        if image == nil {
+            reject("PASSIO-SDK", "no image found", nil)
+        } else {
+       
+            let resolutionType: PassioImageResolution
+
+            if resolution == "RES_512" {
+                resolutionType = PassioImageResolution.res_512
+            } else if resolution == "RES_1080" {
+                resolutionType = PassioImageResolution.res_1080
+            } else {
+                resolutionType = PassioImageResolution.full
+            }
+      
+
+            sdk.recognizeNutritionFactsRemote(image: image!,resolution: resolutionType) { (response: Any) in
+                
+                if let result = response as? PassioFoodItem {
+                    resolve(bridgePassioFoodItem(result))
+                } else {
+                    resolve(NSNull())
+                }
+               }
+         }
+    }
+    
+    @objc(predictNextIngredients:withResolver:withRejecter:)
+    func predictNextIngredients(ingredientsJson: String,
+                                resolve: @escaping RCTPromiseResolveBlock,
+                                reject: @escaping RCTPromiseRejectBlock) {
+        // Parse JSON
+        guard let data = ingredientsJson.data(using: .utf8),
+              let parsedIngredients = try? JSONSerialization.jsonObject(with: data) as? [String] else {
+            reject("INVALID_JSON", "The ingredientsJson is not a valid JSON string", nil)
+            return
+        }
+        
+        sdk.predictNextIngredients(ingredients: parsedIngredients) { foodDataInfo in
+          resolve(foodDataInfo.map(bridgePassioFoodDataInfo))
+    
+        }
+    }
     
     @objc
     override class func requiresMainQueueSetup() -> Bool {
@@ -396,30 +472,6 @@ class PassioSDKBridge: RCTEventEmitter {
     }
 
     
-    @objc(detectFoodFromImageURI:withResolver:withRejecter:)
-    func detectFoodFromImageURI(imageUri: String,
-                                       resolve: @escaping RCTPromiseResolveBlock,
-                                       reject: @escaping RCTPromiseRejectBlock) {
-        let image = UIImage(contentsOfFile: imageUri)
-        let config = FoodDetectionConfiguration(
-            detectVisual: true,
-            volumeDetectionMode: PassioNutritionAISDK.VolumeDetectionMode.auto,
-            detectBarcodes: true,
-            detectPackagedFood: true
-        )
-
-        if image == nil {
-            reject("PASSIO-SDK", "no image found", nil)
-        } else {
-            sdk.detectFoodIn(image: image!, detectionConfig: config) { foodCandidates in
-                if let candidates = foodCandidates {
-                    resolve(bridgeFoodCandidate(candidates))
-                } else {
-                    reject("PASSIO-SDK", "no candidates", nil)
-                }
-            }
-        }
-    }
     
    
     
@@ -442,10 +494,10 @@ class PassioSDKBridge: RCTEventEmitter {
     
     
     @objc(fetchTagsFor:withResolver:withRejecter:)
-    func fetchTagsFor(passioID: String,
+    func fetchTagsFor(refCode: String,
                                        resolve: @escaping RCTPromiseResolveBlock,
                                        reject: @escaping RCTPromiseRejectBlock) {
-        sdk.fetchTagsFor(passioID: passioID) { foodItemTags in
+        sdk.fetchTagsFor(refCode: refCode) { foodItemTags in
             if let tags = foodItemTags {
                 resolve(tags)
             } else {
@@ -455,11 +507,11 @@ class PassioSDKBridge: RCTEventEmitter {
     }
     
     @objc(fetchNutrientsFor:withResolver:withRejecter:)
-    func fetchNutrientsFor(passioID: String,
+    func fetchNutrientsFor(refCode: String,
                        resolve: @escaping RCTPromiseResolveBlock,
                        reject: @escaping RCTPromiseRejectBlock) {
         
-        sdk.fetchInflammatoryEffectData(passioID: passioID) { results in
+        sdk.fetchInflammatoryEffectData(refCode: refCode) { results in
             
             if let nutrients = results {
                 resolve(nutrients.map(bridgePassioNutrient))
@@ -536,7 +588,111 @@ class PassioSDKBridge: RCTEventEmitter {
             }
         }
     
+  @objc(fetchUltraProcessingFoodRating:withResolver:withRejecter:)
+  func fetchUltraProcessingFoodRating(response:String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+      
+    sdk.fetchUltraProcessingFoodRating(passioFoodItem:preparePassioFoodItem(response)!) { status in
+          resolve(bridgePassioUPFRatingResult(status))
+  
+      }
+  }
+    
+    
+    @objc(reportFoodItem:productCode:notes:withResolver:withRejecter:)
+    public func reportFoodItem(refCode: String = "",
+                               productCode: String = "",
+                               notes: String,
+                               resolve: @escaping RCTPromiseResolveBlock,
+                               reject: @escaping RCTPromiseRejectBlock) {
+        
+        let notesArray = parseJSONStringToArrayString(notes)
+            
+            sdk.reportFoodItem(refCode:refCode,productCode: productCode,notes: notesArray) { status in
+                resolve(bridgePassioResult(status))
+            }
+        }
+    
+    @objc(submitUserCreatedFood:withResolver:withRejecter:)
+    func submitUserCreatedFood(passioFoodItem:String,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        
+        if let passioFoodItemObject = preparePassioFoodItem( passioFoodItem)  {
+            
+            sdk.submitUserCreatedFood(item:passioFoodItemObject) { status in
+                resolve(bridgePassioResult(status))
+        
+            }
+        }else{
+            reject("PASSIO-SDK", "unable to prepare Passsio food item object", nil)
+        }
+        
+       
 
+        
+    }
+  
+  @objc(generateMealPlan:withResolver:withRejecter:)
+  func generateMealPlan(request:String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+      
+    sdk.generateMealPlan(request:request) { status in
+        resolve(bridgePassioGeneratedMealPlan(status))
+    }
+  }
+  
+  @objc(generateMealPlanPreview:withResolver:withRejecter:)
+  func generateMealPlanPreview(request:String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+      
+    sdk.generateMealPlanPreview(request:request) { status in
+        resolve(bridgePassioGeneratedMealPlan(status))
+    }
+  }
+
+  @objc(recognizeSpeechRemoteWithGrouping:withResolver:withRejecter:)
+  func recognizeSpeechRemoteWithGrouping(text:String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+      
+    sdk.recognizeSpeechRemoteWithGrouping(text:text) { status in
+        resolve(bridgePassioRecognitionResults(status))
+    }
+  }
+  
+  @objc(recognizeImageRemoteWithGrouping:message:resolution:withResolver:withRejecter:)
+   func recognizeImageRemoteWithGrouping(imageUri:String,
+                                         message:String?,
+                                         resolution:String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+    
+    
+    let resolutionType: PassioImageResolution
+
+    if resolution == "RES_512" {
+        resolutionType = PassioImageResolution.res_512
+    } else if resolution == "RES_1080" {
+        resolutionType = PassioImageResolution.res_1080
+    } else {
+        resolutionType = PassioImageResolution.full
+    }
+    
+    let image = UIImage(contentsOfFile: imageUri)
+    if image == nil {
+        reject("PASSIO-SDK", "no image found", nil)
+    } else {
+      sdk.recognizeImageRemoteWithGrouping(image: image!, resolution: resolutionType,message:message) { status in
+          resolve(bridgePassioRecognitionResults(status))
+      }
+    }
+      
+   
+  }
     // Nutiriton AI SDK (nutritionAdvisorSDK)
    
     
@@ -597,10 +753,7 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
-
-    
-    
-    
+   
     override var methodQueue: DispatchQueue! {
         .main
     }
@@ -765,8 +918,9 @@ private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] 
     
     body.addIfPresent(key: "servingSizeQuantity", value: val.servingSizeQuantity)
     body.addIfPresent(key: "servingSizeUnit", value: val.servingSizeUnit)
-    
+    body.addIfPresent(key: "servingSizeGram", value: val.servingSizeGram)
     body.addIfPresent(key: "servingSizeUnitName", value: val.servingSizeUnitName)
+    
     body.addIfPresent(key: "calories", value: val.calories)
     body.addIfPresent(key: "fat", value: val.fat)
     body.addIfPresent(key: "carbs", value: val.carbs)
@@ -775,12 +929,11 @@ private func bridgeNutritionFacts(_ val: PassioNutritionFacts) -> [String: Any] 
     body.addIfPresent(key: "transFat", value: val.transFat)
     body.addIfPresent(key: "cholesterol", value: val.cholesterol)
     body.addIfPresent(key: "sugarAlcohol", value: val.sugarAlcohol)
+    body.addIfPresent(key: "sugars", value: val.sugars)
     
-    
-    body.addIfPresent(key: "servingSizeGram", value: val.servingSizeGram)
     body.addIfPresent(key: "sodium", value: val.sodium)
     body.addIfPresent(key: "dietaryFiber", value: val.dietaryFiber)
-    body.addIfPresent(key: "sugars", value: val.sugars)
+    
     return body
 }
 
@@ -944,6 +1097,7 @@ private func bridgePassioAdvisorResponse(_ val: PassioAdvisorResponse) -> [Strin
     body.addIfPresent(key: "messageId", value: val.messageId)
     body.addIfPresent(key: "rawContent", value: val.rawContent)
     body.addIfPresent(key: "markupContent", value: val.markupContent)
+    body.addIfPresent(key: "threadId", value: val.threadId)
     
     if let tools = val.tools, tools.count > 0 {
         body["tools"] = tools.map(bridgeStringArray)
@@ -953,6 +1107,14 @@ private func bridgePassioAdvisorResponse(_ val: PassioAdvisorResponse) -> [Strin
         body["extractedIngredients"] = extractedIngredients.map(bridgePassioAdvisorFoodInfo)
     }
     
+    return body
+}
+
+private func bridgePassioUPFRating(_ val: PassioUPFRating) -> [String: Any] {
+    var body: [String: Any] = [:]
+  body.addIfPresent(key: "highlightedIngredients", value: val.highlightedIngredients)
+  body.addIfPresent(key: "rating", value: val.rating)
+  body.addIfPresent(key: "chainOfThought", value: val.chainOfThought)
     return body
 }
 
@@ -974,6 +1136,26 @@ private func bridgePassioAdvisorResultResponse(_ status: Result<PassioAdvisorRes
     }
     return body
 }
+
+private func bridgePassioUPFRatingResult(_ status: Result<PassioUPFRating, NetworkError>) -> [String: Any] {
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+            body.addIfPresent(key: "response", value: try bridgePassioUPFRating(status.get()))
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+        body.addIfPresent(key: "message", value: error.errorMessage)
+    }
+    return body
+}
+
 
 private func bridgePassioFetchPassioAdvisorFoodInfos(_ status: Result<[PassioAdvisorFoodInfo], NetworkError>) -> [String: Any] {
     
@@ -997,12 +1179,157 @@ private func bridgePassioFetchPassioAdvisorFoodInfos(_ status: Result<[PassioAdv
     return body
 }
 
+
+private func bridgePassioResult(_ status: Result<Bool, NetworkError>) -> [String: Any] {
+    
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+            body.addIfPresent(key: "response", value: try status.get())
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+        body.addIfPresent(key: "message", value: error.errorMessage)
+    }
+    return body
+}
+
+private func bridgePassioGeneratedMealPlan(_ status: Result<PassioNutritionAISDK.PassioGeneratedMealPlan, any Error>) -> [String: Any] {
+    
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+          body.addIfPresent(key: "response", value: try bridgePassioGeneratedMealPlan(status.get().self))
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+      body.addIfPresent(key: "message", value: error.localizedDescription)
+    }
+    return body
+}
+
+private func bridgePassioRecognitionResults(_ status: Result<PassioNutritionAISDK.PassioRecognitionResult, any Error>) -> [String: Any] {
+    
+    var body: [String: Any] = [:]
+    switch status {
+    case .success:
+        do {
+            body.addIfPresent(key: "status", value: "Success")
+          body.addIfPresent(key: "response", value: try bridgePassioRecognitionResult(status.get().self))
+        } catch {
+            body.addIfPresent(key: "status", value: "Error")
+            body.addIfPresent(key: "message", value: error.localizedDescription)
+        }
+        
+    case .failure(let error):
+        body.addIfPresent(key: "status", value: "Error")
+      body.addIfPresent(key: "message", value: error.localizedDescription)
+    }
+    return body
+}
+
+private func bridgePassioGeneratedMealPlan(_ val:PassioGeneratedMealPlan) -> [String: Any] {
+    var body: [String: Any] = [:]
+
+  if let constraintsResult = val.constraints {
+       body.addIfPresent(key: "constraints", value:bridgePassioGeneratedMealPlanConstraints(constraintsResult))
+ }
+  
+  body.addIfPresent(key: "shoppingList", value: val .shoppingList.map {bridgePassioGeneratedMealPlanShoppingItem($0)})
+  body.addIfPresent(key: "mealPlanDays", value: val.mealPlanDays.map {bridgePassioGeneratedMealPlanDay($0)})
+  
+    return body
+}
+
+private func bridgePassioGeneratedMealPlanConstraints(_ val:PassioNutritionAISDK.PassioGeneratedMealPlanConstraints) -> [String: Any] {
+    var body: [String: Any] = [:]
+
+  body.addIfPresent(key: "constraints", value:val.constraints)
+  body.addIfPresent(key: "macros", value:bridgePassioGeneratedMealPlanMacros(val.macros))
+  
+  return body
+}
+
+private func bridgePassioGeneratedMealPlanShoppingItem(_ val:PassioNutritionAISDK.PassioGeneratedMealPlanShoppingItem) -> [String: Any] {
+    var body: [String: Any] = [:]
+  // TODO Pending
+  body.addIfPresent(key: "name", value:val.name)
+  body.addIfPresent(key: "portionSize", value:val.portionSize)
+  body.addIfPresent(key: "portionQuantity", value:val.portionQuantity)
+    return body
+}
+
+private func bridgePassioGeneratedMealPlanDay(_ val:PassioNutritionAISDK.PassioGeneratedMealPlanDay) -> [String: Any] {
+    var body: [String: Any] = [:]
+  // TODO Pending
+  body.addIfPresent(key: "macros", value:bridgePassioGeneratedMealPlanMacros(val.macros))
+  body.addIfPresent(key: "breakfast", value:val.breakfast.map {bridgePassioGeneratedMealPlanRecipe($0)})
+  body.addIfPresent(key: "lunch", value:val.lunch.map {bridgePassioGeneratedMealPlanRecipe($0)})
+  body.addIfPresent(key: "dinner", value:val.dinner.map {bridgePassioGeneratedMealPlanRecipe($0)})
+  body.addIfPresent(key: "snack", value:val.snack.map {bridgePassioGeneratedMealPlanRecipe($0)})
+    return body
+}
+
+private func bridgePassioGeneratedMealPlanMacros(_ val:PassioNutritionAISDK.PassioGeneratedMealPlanMacros) -> [String: Any] {
+    var body: [String: Any] = [:]
+  // TODO Pending
+  body.addIfPresent(key: "calories", value:val.calories)
+  body.addIfPresent(key: "protein", value:val.protein)
+  body.addIfPresent(key: "fiber", value:val.fiber)
+  body.addIfPresent(key: "carbs", value:val.carbs)
+  body.addIfPresent(key: "fat", value:val.fat)
+  body.addIfPresent(key: "sugar", value:val.sugar)
+    return body
+}
+
+private func bridgePassioGeneratedMealPlanRecipe(_ val:PassioNutritionAISDK.PassioGeneratedMealPlanRecipe) -> [String: Any] {
+    var body: [String: Any] = [:]
+  body.addIfPresent(key: "name", value:val.name)
+  body.addIfPresent(key: "preparation", value:val.preparation)
+  body.addIfPresent(key: "macros", value:bridgePassioGeneratedMealPlanMacros(val.macros))
+  body.addIfPresent(key: "ingredients", value:val.ingredients.map {bridgePassioFoodDataInfo($0)})
+ return body
+}
+
+
+private func bridgePassioRecognitionItem(_ val:PassioRecognitionItem) -> [String: Any] {
+    var body: [String: Any] = [:]
+
+  body.addIfPresent(key: "mealName", value:val.mealTime?.rawValue)
+  body.addIfPresent(key: "date", value:val.date)
+  body.addIfPresent(key: "resultType", value:val.resultType.rawValue)
+  body.addIfPresent(key: "action", value:val.action?.rawValue)
+  body.addIfPresent(key: "foodItem", value: bridgePassioFoodItem(val.foodItem))
+  return body
+}
+
+private func bridgePassioRecognitionResult(_ val:PassioRecognitionResult) -> [String: Any] {
+    var body: [String: Any] = [:]
+  body.addIfPresent(key: "mealName", value:val.mealName)
+  body.addIfPresent(key: "items", value:val.items.map {bridgePassioRecognitionItem($0)})
+
+  return body
+}
+
 private func bridgePassioTokenBudget(_ val: PassioTokenBudget) -> [String: Any] {
     var body: [String: Any] = [:]
     body.addIfPresent(key: "budgetCap", value: val.budgetCap)
     body.addIfPresent(key: "periodUsage", value: val.periodUsage)
     body.addIfPresent(key: "requestUsage", value: val.requestUsage)
     body.addIfPresent(key: "usedPercent", value: val.usedPercent)
+    body.addIfPresent(key: "apiName", value: val.apiName)
     return body
 }
 
@@ -1033,7 +1360,11 @@ private func bridgePassioFoodItem(_ val: PassioFoodItem) -> [String: Any?] {
     // Not include in android
     body["licenseCopy"] = val.licenseCopy
     body["scannedId"] = val.scannedId
+    
+    
     body["refCode"] = val.refCode
+    
+  
     body["isOpenFood"] = isOpenFood(val)
     body["openFoodLicense"] = openFoodLicense(val)
 
@@ -1062,7 +1393,11 @@ private func bridgePassioIngredient(_ val: PassioIngredient) -> [String: Any?] {
     body["name"] = val.name
     body["id"] = val.id
     body["iconId"] = val.iconId
+  
     body["refCode"] = val.refCode
+    
+    
+    
     body["weight"] = bridgeUnitMass(val.weight())
     body["referenceNutrients"] = bridgePassioNutrients(val.referenceNutrients)
     body["metadata"] = bridgePassioFoodMetadata(val.metadata)
@@ -1079,6 +1414,7 @@ private func  bridgePassioFoodMetadata(_ val: PassioFoodMetadata) -> [String: An
     body["ingredientsDescription"] = val.ingredientsDescription
     body["foodOrigins"] = val.foodOrigins?.map(bridgePassioFoodOrigin)
     body.addIfPresent(key: "tags", value: val.tags)
+    body.addIfPresent(key: "concerns", value: val.concerns)
     return body
 }
 
@@ -1132,6 +1468,7 @@ private func  bridgePassioNutrients(_ val: PassioNutrients) -> [String: Any?] {
     body.addIfPresent(key: "vitaminKMenaquinone4",value:  bridgeUnitMass(val.vitaminKMenaquinone4()))
     body.addIfPresent(key: "vitaminKDihydrophylloquinone",value:  bridgeUnitMass(val.vitaminKDihydrophylloquinone()))
     body.addIfPresent(key: "chromium",value:  bridgeUnitMass(val.chromium()))
+    body.addIfPresent(key: "vitaminARAE",value:  bridgeUnitMass(val.vitaminA_RAE()))
 
     return body;
 }
@@ -1151,6 +1488,12 @@ private func   bridgePassioFoodDataInfo(_ val: PassioFoodDataInfo) -> [String: A
     body.addIfPresent(key:"scoredName", value:  val.scoredName)
     body.addIfPresent(key:"type", value:  val.type)
     body.addIfPresent(key:"isShortName", value:  val.isShortName)
+    body.addIfPresent(key:"refCode", value:  val.refCode)
+ 
+    
+    
+    body.addIfPresent(key:"tags", value:  val.tags?.map(bridgeStringArray))
+    
     
     //Not include in android
     // Not include in IOS
@@ -1182,7 +1525,18 @@ private func   bridgePassioAdvisorFoodInfo(_ val: PassioAdvisorFoodInfo) -> [Str
     body.addIfPresent(key:"portionSize", value:  val.portionSize)
     body.addIfPresent(key:"weightGrams", value:  val.weightGrams)
     body.addIfPresent(key:"recognisedName", value:  val.recognisedName)
-    body.addIfPresent(key:"foodDataInfo", value:  bridgePassioFoodDataInfo(val.foodDataInfo))
+    body.addIfPresent(key:"resultType", value:  val.resultType?.rawValue)
+    body.addIfPresent(key:"productCode", value:  val.productCode)
+    
+    if let foodDataInfo = val.foodDataInfo{
+        body.addIfPresent(key:"foodDataInfo", value:  bridgePassioFoodDataInfo(foodDataInfo))
+    }
+    
+    if let packagedFoodItem = val.packagedFoodItem{
+        body.addIfPresent(key:"packagedFoodItem", value:  bridgePassioFoodItem(packagedFoodItem))
+    }
+  
+  
  
   return body
 }
@@ -1201,6 +1555,7 @@ private func bridgePassioSearchNutritionPreview(_ preview: PassioSearchNutrition
     nutritionPreviewMap["servingUnit"] = preview.servingUnit
     nutritionPreviewMap["weightUnit"] = preview.weightUnit
     nutritionPreviewMap["weightQuantity"] = preview.weightQuantity
+    nutritionPreviewMap["fiber"] = preview.fiber
     return nutritionPreviewMap
 }
 
@@ -1236,7 +1591,7 @@ private func preparePassioSearchNutritionPreview(_ json: String) -> PassioSearch
         if let json = json.data(using: String.Encoding.utf8){
             if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
                
-                return PassioSearchNutritionPreview(calories: jsonData["calories"] as! Int, carbs: jsonData["carbs"] as! Double, fat: jsonData["fat"] as! Double, protein: jsonData["protein"] as! Double, servingUnit: jsonData["servingUnit"] as! String, servingQuantity: jsonData["servingQuantity"] as! Double, weightUnit: jsonData["weightUnit"] as! String, weightQuantity: jsonData["weightQuantity"] as! Double)
+                return PassioSearchNutritionPreview(calories: jsonData["calories"] as! Int, carbs: jsonData["carbs"] as! Double, fat: jsonData["fat"] as! Double, protein: jsonData["protein"] as! Double, fiber: jsonData["fiber"] as! Double, servingUnit: jsonData["servingUnit"] as! String, servingQuantity: jsonData["servingQuantity"] as! Double, weightUnit: jsonData["weightUnit"] as! String, weightQuantity: jsonData["weightQuantity"] as! Double)
                 
             }else{
                 return nil
@@ -1281,8 +1636,11 @@ private func preparePassioFoodDataInfo(_ json: String) -> PassioFoodDataInfo? {
     do{
         if let json = json.data(using: String.Encoding.utf8){
             if let jsonData = try JSONSerialization.jsonObject(with: json, options: .allowFragments) as? [String:AnyObject]{
-              
-                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["isShortName"] as? Bool) ?? true)
+                
+                // Get the tags array or an empty array if it's nil
+               let tags = jsonData["tags"] as? [String] ?? []
+                
+                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["isShortName"] as? Bool) ?? true,refCode: jsonData["refCode"] as! String,tags:tags)
                 
             }else{
                 return nil
@@ -1313,6 +1671,412 @@ private func preparePassioAdvisorResponse(_ json: String) -> PassioAdvisorRespon
         return nil
     }
     
+}
+
+
+private func preparePassioFoodMetadata(from jsonObject: [String: Any]) -> PassioFoodMetadata? {
+    do {
+                 
+                // Safely extract values
+                let barcode = jsonObject["barcode"] as? String
+                let ingredientsDescription = jsonObject["ingredientsDescription"] as? String
+                let tags = jsonObject["tags"] as? [String]
+                
+                // Parse food origins
+                var foodOrigins: [PassioNutritionAISDK.PassioFoodOrigin]? = nil
+                if let originsArray = jsonObject["foodOrigins"] as? [[String: Any]] {
+                    foodOrigins = originsArray.compactMap { originDict -> PassioNutritionAISDK.PassioFoodOrigin? in
+                        guard let id = originDict["id"] as? String,
+                              let source = originDict["source"] as? String
+                        else {
+                            return nil // Return nil if any required field is missing
+                        }
+                        let licenseCopy = originDict["licenseCopy"] as? String
+                        return PassioNutritionAISDK.PassioFoodOrigin(id: id, source: source, licenseCopy: licenseCopy)
+                    }
+                }
+
+      let concerns = jsonObject["concerns"] as? [Int] ?? []
+      
+                // Create and return the PassioFoodMetadata instance
+      return PassioFoodMetadata(foodOrigins: foodOrigins, barcode: barcode, ingredientsDescription: ingredientsDescription, tags: tags,concerns: concerns)
+         
+    } catch {
+        print("Error parsing JSON: \(error)")
+    }
+    return nil
+}
+
+
+private func preparePassioFoodAmount(from jsonObject: [String: Any]) -> PassioFoodAmount? {
+    do {
+            
+                // Safely extract values
+                guard let selectedUnit = jsonObject["selectedUnit"] as? String,
+                      let selectedQuantity = jsonObject["selectedQuantity"] as? Double,
+                      let weightGrams = jsonObject["weightGrams"] as? Double,
+                      let servingUnitsArray = jsonObject["servingUnits"] as? [[String: Any]],
+                      let servingSizesArray = jsonObject["servingSizes"] as? [[String: Any]]
+                else {
+                    return nil // Return nil if any required field is missing
+                }
+
+                // Parse serving units
+                var servingUnits: [PassioNutritionAISDK.PassioServingUnit] = []
+                for unitDict in servingUnitsArray {
+                    guard let unitName = unitDict["unitName"] as? String,
+                          let value = unitDict["value"] as? Double,
+                          let unit = unitDict["unit"] as? String
+                    else {
+                        return nil // Return nil if any required field is missing
+                    }
+                    let servingUnit = PassioNutritionAISDK.PassioServingUnit(unitName: unitName, weight: Measurement<UnitMass>(value: value, unit: .grams)) // Adjust as needed
+                    servingUnits.append(servingUnit)
+                }
+
+                // Parse serving sizes
+                var servingSizes: [PassioNutritionAISDK.PassioServingSize] = []
+                for sizeDict in servingSizesArray {
+                    guard let quantity = sizeDict["quantity"] as? Double,
+                          let unitName = sizeDict["unitName"] as? String
+                    else {
+                        return nil // Return nil if any required field is missing
+                    }
+                    let servingSize = PassioNutritionAISDK.PassioServingSize(quantity: quantity, unitName: unitName)
+                    servingSizes.append(servingSize)
+                }
+
+                // Create and return the PassioFoodAmount instance
+                return PassioFoodAmount(servingSizes: servingSizes, servingUnits: servingUnits)
+    } catch {
+        print("Error parsing JSON: \(error)")
+    }
+    return nil
+}
+
+private func preparePassioIngredient(from jsonObject: [String: Any]) -> PassioIngredient? {
+    do {
+       
+                guard let id = jsonObject["id"] as? String,
+                      let refCode = jsonObject["refCode"] as? String,
+                      let name = jsonObject["name"] as? String,
+                      let iconId = jsonObject["iconId"] as? String,
+                      let referenceNutrients = jsonObject["referenceNutrients"] as?  [String: Any],
+                      let metadata = jsonObject["metadata"] as? [String: Any],
+                      let amount = jsonObject["amount"] as? [String: Any]
+                else {
+                    print("Error: Missing required fields")
+                    return nil // Return nil if any required field is missing
+                }
+                
+
+              // Parse amount
+              guard let amountObject = preparePassioFoodAmount(from: amount) else {
+                fatalError("Invalid amount value") // or return nil or a default value
+              }
+        
+            // Parse referenceNutrients
+             guard let referenceNutrientsObject = preparePassioNutrients(from: referenceNutrients) else {
+              fatalError("Invalid referenceNutrientsObject value") // or return nil or a default value
+             }
+  
+             // Parse metadata
+            guard let metadataObject = preparePassioFoodMetadata(from: metadata) else {
+              fatalError("Invalid metadataObject value") // or return nil or a default value
+             }
+                
+                let tags = jsonObject["tags"] as? [String] ?? []
+
+                return PassioIngredient(
+                    id: id,
+                    name: name,
+                    iconId: iconId,
+                    amount: amountObject,
+                    referenceNutrients: referenceNutrientsObject,
+                    metadata: metadataObject,
+                    refCode: refCode,
+                    tags: tags
+                )
+            }
+        
+     catch {
+        print("Error parsing JSON: \(error)")
+    }
+    return nil
+}
+
+
+func extractMeasurement(from json: [String: Any], key: String) -> Measurement<UnitMass>? {
+    if let data = json[key] as? [String: Any],
+       let value = data["value"] as? Double,
+       let unit = data["unit"] as? String {
+        return Measurement<UnitMass>(value: value, unit: prepareUnitMass(unit) ?? UnitMass.grams)
+    }
+    return nil
+}
+
+private func prepareUnitMass(_ unitValue: String?) -> UnitMass? {
+    if(unitValue == "kg"){
+        return UnitMass.kilograms
+    }else if(unitValue == "kilograms"){
+        return UnitMass.kilograms
+    }else  if(unitValue == "milligrams"){
+        return UnitMass.milligrams
+    }else  if(unitValue == "micrograms"){
+        return UnitMass.micrograms
+    }else  if(unitValue == "dg"){
+        return UnitMass.decigrams
+    }else  if(unitValue == "g"){
+        return UnitMass.grams
+    }else  if(unitValue == "cg"){
+        return UnitMass.centigrams
+    }else  if(unitValue == "mg"){
+        return UnitMass.milligrams
+    }else  if(unitValue == "ug"){
+        return UnitMass.micrograms
+    }else  if(unitValue == "µg"){
+        return UnitMass.micrograms
+    }else  if(unitValue == "ml"){
+        return UnitMass.grams
+    }else  if(unitValue == "oz"){
+        return UnitMass.ounces
+    }else  if(unitValue == "ng"){
+        return UnitMass.nanograms
+    }else  if(unitValue == "pg"){
+        return UnitMass.picograms
+    }else  if(unitValue == "lb"){
+        return UnitMass.pounds
+    }else  if(unitValue == "st"){
+        return UnitMass.stones
+    }else  if(unitValue == "ct"){
+        return UnitMass.carats
+    }
+  return  UnitMass.grams
+}
+
+private func prepareUnitEnergy(_ unitValue: String?) -> UnitEnergy? {
+    if(unitValue == "kcal"){
+        return UnitEnergy.kilocalories
+    }else if(unitValue == "kj"){
+        return UnitEnergy.kilojoules
+    }else if(unitValue == "cal"){
+        return UnitEnergy.calories
+    }else if(unitValue == "j"){
+        return UnitEnergy.joules
+    }else if(unitValue == "kWh"){
+        return UnitEnergy.kilowattHours
+    }
+  return  UnitEnergy.kilocalories
+}
+
+private func preparePassioNutrients(from jsonObject: [String: Any]) -> PassioNutrients? {
+
+    do {
+             
+            
+            var fat:Measurement<UnitMass>? = nil
+            var satFat:Measurement<UnitMass>? = nil
+            var monounsaturatedFat:Measurement<UnitMass>? = nil
+            var polyunsaturatedFat:Measurement<UnitMass>? = nil
+            var proteins:Measurement<UnitMass>? = nil
+            var carbs:Measurement<UnitMass>? = nil
+            var calories:Measurement<UnitEnergy>? = nil
+            var cholesterol:Measurement<UnitMass>? = nil
+            var sodium:Measurement<UnitMass>? = nil
+            var fibers:Measurement<UnitMass>? = nil
+            var transFat:Measurement<UnitMass>? = nil
+            var vitaminA:Double? = nil
+            var vitaminA_RAE:Measurement<UnitMass>? = nil
+            var vitaminD:Measurement<UnitMass>? = nil
+            var vitaminB6:Measurement<UnitMass>? = nil
+            var vitaminB12:Measurement<UnitMass>? = nil
+            var vitaminB12Added:Measurement<UnitMass>? = nil
+            var vitaminE:Measurement<UnitMass>? = nil
+            var vitaminEAdded:Measurement<UnitMass>? = nil
+            var iodine:Measurement<UnitMass>? = nil
+            var calcium:Measurement<UnitMass>? = nil
+            var potassium:Measurement<UnitMass>? = nil
+            var magnesium:Measurement<UnitMass>? = nil
+            var phosphorus:Measurement<UnitMass>? = nil
+            var sugarAlcohol:Measurement<UnitMass>? = nil
+            var zinc:Measurement<UnitMass>? = nil
+            var selenium:Measurement<UnitMass>? = nil
+            var folicAcid:Measurement<UnitMass>? = nil
+            var chromium:Measurement<UnitMass>? = nil
+            var vitaminKPhylloquinone:Measurement<UnitMass>? = nil
+            var vitaminKMenaquinone4:Measurement<UnitMass>? = nil
+            var vitaminKDihydrophylloquinone:Measurement<UnitMass>? = nil
+            var sugars:Measurement<UnitMass>? = nil
+            var alcohol:Measurement<UnitMass>? = nil
+            var iron:Measurement<UnitMass>? = nil
+            var vitaminC:Measurement<UnitMass>? = nil
+            var sugarsAdded:Measurement<UnitMass>? = nil
+            var weight:Measurement<UnitMass> = Measurement<UnitMass>(value: 100.0, unit: .grams)
+            
+            // Extract the weight
+            if let weightData = jsonObject["weight"] as? [String: Any] {
+                let weightValue = weightData["value"] as? Double ?? 0.0
+                let weightUnit = weightData["unit"] as? String
+                weight = Measurement<UnitMass>(value: weightValue, unit: prepareUnitMass(weightUnit)!)
+            }
+               
+        if let caloriesData = jsonObject["calories"] as? [String: Any] {
+                let caloriesDataValue = caloriesData["value"] as? Double ?? 0.0
+                let caloriesDataUnit = caloriesData["unit"] as? String
+                calories = Measurement<UnitEnergy>(value: caloriesDataValue, unit: prepareUnitEnergy(caloriesDataUnit)!)
+            }
+            
+            vitaminA = jsonObject["vitaminA"] as? Double
+            if let vitaminAData = jsonObject["vitaminA"] as? [String: Any] {
+                let value = vitaminAData["value"] as? Double
+                vitaminA = value
+            }
+            
+                
+            fat = extractMeasurement(from: jsonObject, key: "fat")
+            satFat = extractMeasurement(from: jsonObject, key: "satFat")
+            monounsaturatedFat = extractMeasurement(from: jsonObject, key: "monounsaturatedFat")
+            polyunsaturatedFat = extractMeasurement(from: jsonObject, key: "polyunsaturatedFat")
+            proteins = extractMeasurement(from: jsonObject, key: "protein")
+            carbs = extractMeasurement(from: jsonObject, key: "carbs")
+            cholesterol = extractMeasurement(from: jsonObject, key: "cholesterol")
+            sodium = extractMeasurement(from: jsonObject, key: "sodium")
+            fibers = extractMeasurement(from: jsonObject, key: "fibers")
+            transFat = extractMeasurement(from: jsonObject, key: "transFat")
+         
+            vitaminA_RAE = extractMeasurement(from: jsonObject, key: "vitaminARAE")
+            vitaminD = extractMeasurement(from: jsonObject, key: "vitaminD")
+            vitaminB6 = extractMeasurement(from: jsonObject, key: "vitaminB6")
+            vitaminB12 = extractMeasurement(from: jsonObject, key: "vitaminB12")
+            vitaminB12Added = extractMeasurement(from: jsonObject, key: "vitaminB12Added")
+            vitaminE = extractMeasurement(from: jsonObject, key: "vitaminE")
+            vitaminEAdded = extractMeasurement(from: jsonObject, key: "vitaminEAdded")
+            iodine = extractMeasurement(from: jsonObject, key: "iodine")
+            calcium = extractMeasurement(from: jsonObject, key: "calcium")
+            potassium = extractMeasurement(from: jsonObject, key: "potassium")
+            magnesium = extractMeasurement(from: jsonObject, key: "magnesium")
+            phosphorus = extractMeasurement(from: jsonObject, key: "phosphorus")
+            sugarAlcohol = extractMeasurement(from: jsonObject, key: "sugarAlcohol")
+            zinc = extractMeasurement(from: jsonObject, key: "zinc")
+            selenium = extractMeasurement(from: jsonObject, key: "selenium")
+            folicAcid = extractMeasurement(from: jsonObject, key: "folicAcid")
+            chromium = extractMeasurement(from: jsonObject, key: "chromium")
+            vitaminKPhylloquinone = extractMeasurement(from: jsonObject, key: "vitaminKPhylloquinone")
+            vitaminKMenaquinone4 = extractMeasurement(from: jsonObject, key: "vitaminKMenaquinone4")
+            vitaminKDihydrophylloquinone = extractMeasurement(from: jsonObject, key: "vitaminKDihydrophylloquinone")
+            alcohol = extractMeasurement(from: jsonObject, key: "alcohol")
+            sugars = extractMeasurement(from: jsonObject, key: "sugars")
+        iron = extractMeasurement(from: jsonObject, key: "iron")
+        vitaminC = extractMeasurement(from: jsonObject, key: "vitaminC")
+        sugarsAdded = extractMeasurement(from: jsonObject, key: "sugarsAdded")
+           
+
+            
+
+            // Create the PassioNutrients instance
+            return PassioNutrients(
+                fat: fat,
+                satFat:satFat,
+                monounsaturatedFat:monounsaturatedFat,
+                polyunsaturatedFat:polyunsaturatedFat,
+                proteins:proteins,
+                carbs:carbs,
+                calories:calories,
+                cholesterol:cholesterol,
+                sodium:sodium,
+                fibers:fibers,
+                transFat:transFat,
+                sugars: sugars,
+                sugarsAdded: sugarsAdded,
+                alcohol: alcohol,
+                iron: iron,
+                vitaminC:vitaminC,
+                vitaminA:vitaminA,
+                vitaminA_RAE:vitaminA_RAE,
+                vitaminD:vitaminD,
+                vitaminB6:vitaminB6,
+                vitaminB12:vitaminB12,
+                vitaminB12Added:vitaminB12Added,
+                vitaminE:vitaminE,
+                vitaminEAdded:vitaminEAdded,
+                iodine:iodine,
+                calcium:calcium,
+                potassium:potassium,
+                magnesium:magnesium,
+                phosphorus:phosphorus,
+                sugarAlcohol:sugarAlcohol,
+                zinc:zinc,
+                selenium:selenium,
+                folicAcid:folicAcid,
+                chromium:chromium,
+                vitaminKPhylloquinone:vitaminKPhylloquinone,
+                vitaminKMenaquinone4:vitaminKMenaquinone4,
+                vitaminKDihydrophylloquinone:vitaminKDihydrophylloquinone,
+                weight:weight
+            )
+    
+    } catch {
+        print("Error parsing JSON: \(error)")
+    }
+
+    return nil
+}
+
+private func preparePassioFoodItem(_ json: String) -> PassioFoodItem? {
+    do {
+        if let jsonData = json.data(using: .utf8) {
+            // Convert JSON data to a dictionary
+            if let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: .allowFragments) as? [String: Any] {
+                
+                // Safely extract and cast the values from the dictionary
+                guard let id = jsonObject["id"] as? String,
+                      let scannedId = jsonObject["scannedId"] as? String,
+                      let name = jsonObject["name"] as? String,
+                      let details = jsonObject["details"] as? String,
+                      let iconId = jsonObject["iconId"] as? String,
+                      let licenseCopy = jsonObject["licenseCopy"] as? String,
+                      let refCode = jsonObject["refCode"] as? String,
+                      let amountDict = jsonObject["amount"] as? [String: Any], // Assuming `PassioFoodAmount` is a dictionary
+                      let ingredientsArray = jsonObject["ingredients"] as? [[String: Any]] // Assuming `PassioIngredient` is an array of dictionaries
+                else {
+                    return nil // Return nil if any required field is missing
+                }
+
+                // Parse amount
+                guard let amountObject = preparePassioFoodAmount(from: amountDict) else {
+                  fatalError("Invalid amount value") // or return nil or a default value
+                }
+
+                // Parse ingredients
+                var ingredients: [PassioNutritionAISDK.PassioIngredient] = []
+                for ingredientDict in ingredientsArray {
+                    // Initialize PassioIngredient from ingredientDict
+                    let ingredientParse = preparePassioIngredient(from: ingredientDict)// Replace with actual initialization
+                    if let ingredient = ingredientParse {
+                        ingredients.append(ingredient)
+                    }
+          
+                }
+                
+            
+
+                // Create and return the PassioFoodItem instance
+                return PassioFoodItem(id: id,
+                                      scannedId: PassioNutritionAISDK.PassioID(scannedId), // Adjust as needed
+                                      name: name,
+                                      details: details,
+                                      iconId: iconId,
+                                      licenseCopy: licenseCopy,
+                                      amount: amountObject,
+                                      ingredients: ingredients,
+                                      refCode: refCode,
+                                      tags: jsonObject["tags"] as? [String]) // Optional tags
+            }
+        }
+    } catch {
+        print("Error parsing JSON: \(error)")
+    }
+    return nil
 }
 
 
@@ -1358,3 +2122,24 @@ struct DetectedCandidateImp: DetectedCandidate, Equatable {
 
 }
 
+func parseJSONStringToArrayString(_ jsonString: String) -> [String]? {
+    // Ensure the string is not empty
+    guard !jsonString.isEmpty else {
+        return nil
+    }
+    
+    // Convert the string to Data
+    guard let data = jsonString.data(using: .utf8) else {
+        return nil
+    }
+    
+    // Decode the JSON data into an array of strings
+    do {
+        let decodedArray = try JSONDecoder().decode([String].self, from: data)
+        return decodedArray
+    } catch {
+        // Handle decoding errors
+        print("Error decoding JSON: \(error.localizedDescription)")
+        return nil
+    }
+}

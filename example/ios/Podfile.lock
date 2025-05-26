@@ -285,7 +285,7 @@ PODS:
     - React-jsi (= 0.68.5)
     - React-logger (= 0.68.5)
     - React-perflogger (= 0.68.5)
-  - ReactNativePassioSDK (3.1.4):
+  - ReactNativePassioSDK (3.2.6):
     - React-Core
   - RNGestureHandler (2.16.2):
     - React-Core
@@ -434,26 +434,26 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: a7c83b31436843459a1961bfd74b96033dc77234
+  boost: aa35e27b639bf67de7573b279486f84a3c6546c2
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: 2b47ff52037bd9ae07cc9b051c9975797814b736
   FBReactNativeSpec: 0e0d384ef17a33b385f13f0c7f97702c7cd17858
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 476ee3e89abb49e07f822b48323c51c57124b572
-  RCT-Folly: 4d8508a426467c48885f1151029bc15fa5d7b3b8
+  RCT-Folly: 98c12368076b400dc54d2cedb1a4574deee64356
   RCTRequired: 0f06b6068f530932d10e1a01a5352fad4eaacb74
   RCTTypeSafety: b0ee81f10ef1b7d977605a2b266823dabd565e65
   React: 3becd12bd51ea8a43bdde7e09d0f40fba7820e03
   React-callinvoker: 11abfff50e6bf7a55b3a90b4dc2187f71f224593
   React-Codegen: f8946ce0768fb8e92e092e30944489c4b2955b2d
-  React-Core: 203cdb6ee2657b198d97d41031c249161060e6ca
+  React-Core: ba6db3a3ab2447674c4a888a31459240693ed94e
   React-CoreModules: 6eb0c06a4a223fde2cb6a8d0f44f58b67e808942
-  React-cxxreact: afb0c6c07d19adbd850747fedeac20c6832d40b9
-  React-jsi: 14d37a6db2af2c1a49f6f5c2e4ee667c364ae45c
-  React-jsiexecutor: 45c0496ca8cef6b02d9fa0274c25cf458fe91a56
+  React-cxxreact: f66d3d2921d2f3a30bd3e45c75b1ca4e70680fc5
+  React-jsi: 1219cf42778ebf3c5825bf271fa31607976d0d67
+  React-jsiexecutor: 6547ddb57b140f21bf442d22fa32e3afc961daa9
   React-jsinspector: eb202e43b3879aba9a14f3f65788aec85d4e1ea9
-  React-logger: 98f663b292a60967ebbc6d803ae96c1381183b6d
-  react-native-image-picker: 60f4246eb5bb7187fc15638a8c1f13abd3820695
+  React-logger: cd36509e03584be6593f6df642c68453057f198f
+  react-native-image-picker: 1f5318beec2ebed6695454ffb9bea8c4152f1598
   React-perflogger: 0458a87ea9a7342079e7a31b0d32b3734fb8415f
   React-RCTActionSheet: 22538001ea2926dea001111dd2846c13a0730bc9
   React-RCTAnimation: 732ce66878d4aa151d56a0d142b1105aa12fd313
@@ -465,12 +465,12 @@ SPEC CHECKSUMS:
   React-RCTText: bbd275ee287730c5acbab1aadc0db39c25c5c64e
   React-RCTVibration: 9819a3bf6230e4b2a99877c21268b0b2416157a1
   React-runtimeexecutor: b1f1995089b90696dbc2a7ffe0059a80db5c8eb1
-  ReactCommon: 149e2c0acab9bac61378da0db5b2880a1b5ff59b
-  ReactNativePassioSDK: d1bc3d9c9d7b0b15389f333fbe257df82a7f3ac5
-  RNGestureHandler: 7d8bc16a05220fa1827ff734e418d9044b0cce3d
-  RNReanimated: 4d6eefb69dc70c65b0ee62b6a99490d077a37bbc
+  ReactCommon: 1bf47544e1c9fd0927b374aead9527441b550c2d
+  ReactNativePassioSDK: 267ac3c46d3f80b2c0eb5148e7725582c918f2a1
+  RNGestureHandler: 70aa8602ef064b2698b870fc87d074ce1cbef142
+  RNReanimated: 8fa3fa4fe09d5d4328cdf92d7f87c50fe3b3da7f
   Yoga: c4d61225a466f250c35c1ee78d2d0b3d41fe661c
 
 PODFILE CHECKSUM: 04f6ee92302f8498b3513221fd32c360e64c27d0
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

@@ -2,14 +2,20 @@ package com.reactnativepassiosdk
 
 import ai.passio.passiosdk.passiofood.PassioFoodDataInfo
 import ai.passio.passiosdk.passiofood.PassioSearchNutritionPreview
+import ai.passio.passiosdk.passiofood.data.measurement.Unit
+import ai.passio.passiosdk.passiofood.data.measurement.UnitMass
 import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorFoodInfo
 import ai.passio.passiosdk.passiofood.data.model.PassioAdvisorResponse
 import ai.passio.passiosdk.passiofood.data.model.PassioFoodAmount
 import ai.passio.passiosdk.passiofood.data.model.PassioFoodItem
 import ai.passio.passiosdk.passiofood.data.model.PassioFoodMetadata
 import ai.passio.passiosdk.passiofood.data.model.PassioFoodOrigin
+import ai.passio.passiosdk.passiofood.data.model.PassioFoodResultType
 import ai.passio.passiosdk.passiofood.data.model.PassioIngredient
 import ai.passio.passiosdk.passiofood.data.model.PassioNutrients
+import ai.passio.passiosdk.passiofood.data.model.PassioResult
+import ai.passio.passiosdk.passiofood.data.model.PassioServingSize
+import ai.passio.passiosdk.passiofood.data.model.PassioServingUnit
 import bridgeMeasurementIU
 import bridgeServingSize
 import bridgeServingUnits
@@ -17,7 +23,11 @@ import bridgeUnitEnergy
 import bridgeUnitMass
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.reactnativepassiosdk.map.bridgePassioFoodDataInfoQuery
+import com.reactnativepassiosdk.map.bridgePassioFoodItemMapper
 import mapBridged
+import mapNullable
+import mapToNumberArray
 import mapToStringArray
 import putIfNotNull
 
@@ -60,9 +70,26 @@ fun bridgePassioIngredient(passioIngredient: PassioIngredient): ReadableMap {
   return map
 }
 
+fun bridgePassioResultBoolean(result: PassioResult<Boolean>): ReadableMap {
+  val map = WritableNativeMap()
+  when (result) {
+    is PassioResult.Success -> {
+      map.putString("status", "Success")
+      map.putIfNotNull("response",result.value)
+    }
+    is PassioResult.Error -> {
+      map.putString("status", "Error")
+      map.putIfNotNull("message", result.message)
+    }
+  }
+  return map
+}
 fun bridgePassioFoodMetadata(passioFoodMetadata: PassioFoodMetadata): ReadableMap {
   val map = WritableNativeMap()
   map.putIfNotNull("barcode", passioFoodMetadata.barcode)
+  passioFoodMetadata.concerns?.let {
+    map.putIfNotNull("concerns", it.mapToNumberArray())
+  }
   map.putIfNotNull("ingredientsDescription", passioFoodMetadata.ingredientsDescription)
   map.putIfNotNull("tags", passioFoodMetadata.tags?.mapToStringArray())
   map.putIfNotNull(
@@ -124,37 +151,29 @@ fun bridgePassioNutrients(passioNutrients: PassioNutrients): ReadableMap {
     bridgeUnitMass(passioNutrients.vitaminKDihydrophylloquinone())
   )
   map.putIfNotNull("chromium", bridgeUnitMass(passioNutrients.chromium()))
+  map.putIfNotNull("vitaminARAE", bridgeUnitMass(passioNutrients.vitaminARAE()))
 
 
 
   return map
 }
 
-fun bridgePassioFoodDataInfoQuery(searchQuery: ReadableMap): PassioFoodDataInfo {
-  val previewMap = searchQuery.getMap("nutritionPreview")
-  val preview = PassioSearchNutritionPreview(
-    calories = previewMap?.getInt("calories") ?: 0,
-    servingUnit = previewMap?.getString("servingUnit") ?: "",
-    servingQuantity = previewMap?.getDouble("servingQuantity") ?: 0.0,
-    weightQuantity = previewMap?.getDouble("weightQuantity") ?: 0.0,
-    weightUnit = previewMap?.getString("weightUnit") ?: "",
-    carbs = previewMap?.getDouble("carbs") ?: 0.0,
-    protein = previewMap?.getDouble("protein") ?: 0.0,
-    fat = previewMap?.getDouble("fat") ?: 0.0,
-  )
-  val query = PassioFoodDataInfo(
-    foodName = searchQuery.getString("foodName") ?: "",
-    brandName = searchQuery.getString("brandName") ?: "",
-    iconID = searchQuery.getString("iconID") ?: "",
-    score = searchQuery.getDouble("score") ?: 0.0,
-    scoredName = searchQuery.getString("scoredName") ?: "",
-    labelId = searchQuery.getString("labelId") ?: "",
-    type = searchQuery.getString("type") ?: "",
-    resultId = searchQuery.getString("resultId") ?: "",
-    nutritionPreview = preview,
-    isShortName = searchQuery.getBoolean("isShortName"),
+fun bridgePassioServingSizeQuery(query: ReadableMap?): PassioServingSize {
+  val amount = PassioServingSize(
+    quantity  = query?.getDouble("quantity") ?: 0.0,
+    unitName = query?.getString("unitName") ?: "",
   );
-  return query
+  return amount
+}
+fun bridgePassioServingUnitQuery(query: ReadableMap?): PassioServingUnit {
+  val amount = PassioServingUnit(
+    weight  = UnitMass(
+      unit = Unit.unitFromString(query?.getString("unit") ?: "") ?: Unit.unitFromString("gram")!!,
+      value  = query?.getDouble("value") ?: 0.0
+    ),
+    unitName = query?.getString("unitName") ?: "",
+  );
+  return amount
 }
 
 fun bridgePassioAdvisorResponseQuery(query: ReadableMap): PassioAdvisorResponse {
@@ -165,7 +184,8 @@ fun bridgePassioAdvisorResponseQuery(query: ReadableMap): PassioAdvisorResponse 
   val toolReadableArray = query.getArray("tools");
   toolReadableArray?.let {
     for (i in 0 until it.size()) {
-      val item: String = it.getString(i)
+      // Add non-null assertion `!!` as item expects String, not String?
+      val item: String = it.getString(i)!!
       tools.add(item)
     }
   }
@@ -174,17 +194,30 @@ fun bridgePassioAdvisorResponseQuery(query: ReadableMap): PassioAdvisorResponse 
   val extractedIngredientsReadableArray = query.getArray("extractedIngredients");
   extractedIngredientsReadableArray?.let {
     for (i in 0 until it.size()) {
-      val map: ReadableMap = it.getMap(i)
+      // Add non-null assertion `!!` as map expects ReadableMap, not ReadableMap?
+      val map: ReadableMap = it.getMap(i)!!
       var foodDataInfo: PassioFoodDataInfo? = null
 
       map.getMap("foodDataInfo")?.let {info->
         foodDataInfo = bridgePassioFoodDataInfoQuery(info)
       }
+
+      var resultType = PassioFoodResultType.FOOD_ITEM
+      if(map.getString("resultType").equals("barcode")){
+        resultType = PassioFoodResultType.BARCODE
+      }else if(map.getString("resultType").equals("nutritionFacts")){
+        resultType = PassioFoodResultType.NUTRITION_FACTS
+      }
+
       val info = PassioAdvisorFoodInfo(
         portionSize = map.getString("portionSize") ?: "",
         weightGrams = map.getDouble("weightGrams") ?: 0.0,
         recognisedName = map.getString("recognisedName") ?: "",
         foodDataInfo = foodDataInfo,
+        resultType = resultType,
+        packagedFoodItem = map.getMap("packagedFoodItem")
+          ?.let { it1 -> bridgePassioFoodItemMapper(it1) },
+        productCode= map.getString("productCode") ?: "",
       )
       extractedIngredients.add(info)
     }
@@ -213,7 +246,8 @@ fun bridgePassioFoodDataInfo(passioFoodDataInfo: PassioFoodDataInfo): ReadableMa
   map.putIfNotNull("scoredName", passioFoodDataInfo.scoredName)
   map.putIfNotNull("type", passioFoodDataInfo.type)
   map.putIfNotNull("isShortName", passioFoodDataInfo.isShortName)
-
+  map.putIfNotNull("refCode", passioFoodDataInfo.refCode)
+  map.putIfNotNull("tags", passioFoodDataInfo.tags?.mapToStringArray())
   map.putIfNotNull(
     "nutritionPreview",
     bridgePassioSearchNutritionPreview((passioFoodDataInfo.nutritionPreview))
@@ -231,6 +265,7 @@ fun bridgePassioSearchNutritionPreview(passioSearchNutritionPreview: PassioSearc
   map.putIfNotNull("servingUnit", passioSearchNutritionPreview.servingUnit)
   map.putIfNotNull("weightQuantity", passioSearchNutritionPreview.weightQuantity)
   map.putIfNotNull("weightUnit", passioSearchNutritionPreview.weightUnit)
+  map.putIfNotNull("fiber", passioSearchNutritionPreview.fiber)
   return map
 }
 
@@ -252,5 +287,4 @@ fun PassioFoodItem.openFoodLicense(): String? {
   }
   return null
 }
-
 

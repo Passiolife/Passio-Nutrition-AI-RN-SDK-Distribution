@@ -28,6 +28,7 @@ export const usePassioSDK = ({
           key: key,
           debugMode: debugMode,
           autoUpdate: autoUpdate,
+          remoteOnly: true,
         })
         switch (status.mode) {
           case 'notReady':

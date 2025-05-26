@@ -7,11 +7,7 @@ import {
 } from 'react-native'
 
 // Define the props for the native component
-type NativeProps = {
-  config?: {
-    volumeDetectionMode?: 'auto' | 'dualWideCamera' | 'none'
-  }
-} & ViewProps
+type NativeProps = {} & ViewProps
 
 // Require the native component
 const NativeDetectionCameraView = requireNativeComponent(
@@ -20,23 +16,11 @@ const NativeDetectionCameraView = requireNativeComponent(
 
 // Create a wrapper component
 
-type Props = {
-  volumeDetectionMode?: 'auto' | 'dualWideCamera' | 'none'
-} & ViewProps
+type Props = ViewProps
 
-export const DetectionCameraView = ({
-  volumeDetectionMode = 'auto',
-  ...rest
-}: Props) => {
+export const DetectionCameraView = ({ ...rest }: Props) => {
   if (Platform.OS === 'ios') {
-    return (
-      <NativeDetectionCameraView
-        {...rest}
-        config={{
-          volumeDetectionMode: volumeDetectionMode,
-        }}
-      />
-    )
+    return <NativeDetectionCameraView {...rest} />
   } else {
     return <NativeDetectionCameraView {...rest} />
   }

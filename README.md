@@ -29,14 +29,21 @@ Please note that the SDK will currently not run in the iOS simulator. We hope to
 
 ## Installation
 
-1. Install the package using npm install @passiolife/nutritionai-react-native-sdk-v2 or yarn add @passiolife/nutritionai-react-native-sdk-v2
+1. Create an `.npmrc` file in the root of your project with the following lines, replacing `GITHUB_ACCESS_TOKEN` with the token provided to you by Passio. This grants you access to the SDK's private listing on Github Package Registry.
 
-2. Ensure the native dependencies are linked to your app.
+```
+//npm.pkg.github.com/:_authToken=GITHUB_ACCESS_TOKEN
+@passiolife:registry=https://npm.pkg.github.com
+```
+
+2. Install the package using npm install @passiolife/nutritionai-react-native-sdk-v3 or yarn add @passiolife/nutritionai-react-native-sdk-v3
+
+3. Ensure the native dependencies are linked to your app.
 
 For Android, add below dependencies into build.gradle file.
 
 ```bash
-implementation files("$rootDir/../node_modules/@passiolife/nutritionai-react-native-sdk-v2/android/libs/passiolib-release.aar")
+implementation files("$rootDir/../node_modules/@passiolife/nutritionai-react-native-sdk-v3/android/libs/passiolib-release.aar")
 ```
 
 For iOS, run pod install.
@@ -57,7 +64,7 @@ For Android, auto-linking should handle setting up the Gradle dependency for you
 import {
   PassioSDK,
   DetectionCameraView,
-} from '@passiolife/nutritionai-react-native-sdk-v2';
+} from '@passiolife/nutritionai-react-native-sdk-v3';
 ```
 
 3. To show the live camera preview, add the DetectionCameraView to your view
@@ -133,7 +140,7 @@ import {
   PassioSDK,
   type PassioFoodItem,
   type PassioID,
-} from '@passiolife/nutritionai-react-native-sdk-v2'
+} from '@passiolife/nutritionai-react-native-sdk-v3'
 ```
 
 ```typescript
@@ -194,10 +201,10 @@ const getFoodItemByPackageFoodCode = async (packagedFoodCode: PackagedFoodCode) 
 ````
 
 ## Migration
-[Click here](https://github.com/Passiolife/NutritionAI-React-Native-SDK-v2/blob/main/MigrationV2ToV3.md)
+[Click here](https://github.com/Passiolife/NutritionAI-React-Native-SDK-v3/blob/main/MigrationV2ToV3.md)
 
 ## Support V2 Structure
-[Click here](https://github.com/Passiolife/NutritionAI-React-Native-SDK-v2/blob/main/supportV2Structure.md)
+[Click here](https://github.com/Passiolife/NutritionAI-React-Native-SDK-v3/blob/main/supportV2Structure.md)
 
 ## Known Issues / Workarounds
 

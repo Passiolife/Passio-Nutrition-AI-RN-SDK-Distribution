@@ -1,4 +1,4 @@
-import type { AmountEstimate, BoundingBox, PassioID } from '.'
+import type { BoundingBox, PassioID } from '.'
 import type { ImagesInfo } from './v3'
 
 /**
@@ -19,12 +19,6 @@ export interface DetectedCandidate {
    * A box describing a detected object's location in the camera view
    */
   boundingBox: BoundingBox
-
-  /**
-   * Supported only in IOS
-   * Scanned AmountEstimate
-   */
-  amountEstimate?: AmountEstimate
 
   /**
    * The nutritional data for this item in the database

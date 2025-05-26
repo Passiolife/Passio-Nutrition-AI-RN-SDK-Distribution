@@ -647,6 +647,19 @@ export class PassioFoodItemNutrients {
         )
       })
     )
+
+    passioNutrients.vitaminARAE = this.sumOfUnitMass(
+      ingredientNutrients?.map((item) => {
+        let unitMas: UnitMass = {
+          unit: item.reference.vitaminARAE?.unit ?? 'g',
+          value: (item.reference.vitaminARAE?.value ?? 0) * item.value,
+        }
+        return (
+          this.scaleValueByAmount(weight, item.reference.weight, unitMas) ??
+          DEFAULT_UNIT_MASS
+        )
+      })
+    )
     return passioNutrients
   }
 }

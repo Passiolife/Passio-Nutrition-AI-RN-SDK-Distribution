@@ -6,7 +6,7 @@ import type { RefCode } from '../RefCode'
 
 export interface PassioFoodItem {
   // Reference code of Passio food item
-  refCode?: RefCode
+  refCode: RefCode
 
   // Name of the food item
   name: string

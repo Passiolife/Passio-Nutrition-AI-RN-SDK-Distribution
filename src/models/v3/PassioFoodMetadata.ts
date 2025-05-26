@@ -3,6 +3,7 @@ export interface PassioFoodMetadata {
   ingredientsDescription?: string
   tags?: string[] | null
   foodOrigins?: PassioFoodOrigin[] | null
+  concerns?: number[] | null
 }
 
 export interface PassioFoodOrigin {
