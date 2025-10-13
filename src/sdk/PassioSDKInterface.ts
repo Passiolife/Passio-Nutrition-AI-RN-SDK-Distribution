@@ -26,12 +26,10 @@ import type {
   PassioStatus,
   UnitMass,
   RefCode,
-  DetectedCandidate,
   PassioAccountListener,
   PassioCameraZoomLevel,
-  FoodDetectionConfig,
-  FoodDetectionEvent,
-  NutritionDetectionEvent,
+  BarcodeScanEvent,
+  DetectedCandidate,
 } from '../models'
 
 export interface PassioSDKInterface {
@@ -64,16 +62,11 @@ export interface PassioSDKInterface {
    */
   requestCameraAuthorization(): Promise<boolean>
 
-  /** Deprecated("startFoodDetection will be removed in a future release. Use recognizeImageRemote instead.")
-   * Begin food detection using the device's camera.
-   * @param options - An object to determine which types of scanning should be performed.
-   * @param callback - A callback to repeatedly receive
-   * food detection events as they occur.
-   * @returns A `Subscription` that should be retained by the caller while food detection is running. Call `remove` on the subscription to terminate food detection.
+  /**
+   * Start the camera and begin detecting barcode items.
    */
-  startFoodDetection(
-    options: FoodDetectionConfig,
-    callback: (detection: FoodDetectionEvent) => void
+  startBarcodeScanning(
+    callback: (detection: BarcodeScanEvent) => void
   ): Subscription
 
   /**
@@ -96,17 +89,6 @@ export interface PassioSDKInterface {
   getMinMaxCameraZoomLevel(): Promise<PassioCameraZoomLevel>
 
   /**
-   * Deprecated("startNutritionFactsDetection will be removed in a future release. Use recognizeImageRemote instead.")
-   * Begin nutrition fact label detection using the device's camera.
-   * @param callback - A callback to repeatedly receive nutrition detection events as they occur.
-   * @returns A `Subscription` that should be retained by the caller while nutrition detection is running. Call `remove` on the subscription to terminate nutrition detection.
-   * NOTE: IOS:  <DetectionCameraView style={styles.detectionCamera} volumeDetectionMode='none' />
-   */
-  startNutritionFactsDetection(
-    callback: (detection: NutritionDetectionEvent) => void
-  ): Subscription
-
-  /**
    * Look up the food item result for a given Passio ID.
    * @param passioID - The Passio ID for the  query.
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
@@ -119,6 +101,13 @@ export interface PassioSDKInterface {
    * @returns A `Promise` resolving to a `PassioFoodItem` object if the record exists in the database or `null` if not.
    */
   fetchFoodItemForRefCode(refCode: RefCode): Promise<PassioFoodItem | null>
+
+  /**
+   * Look up the nutrients for a given refCode.
+   * @param refCode - The refCode for the  query.
+   * @returns A `Promise` resolving to a JSON string of nutrients if the record exists in the database or `null` if not.
+   */
+  fetchNutrientJSONForRefCode(refCode: RefCode): Promise<string | null>
 
   /**
    * Look up the food item result for a given by barcode or packagedFoodCode.

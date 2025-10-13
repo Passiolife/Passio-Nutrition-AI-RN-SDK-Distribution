@@ -15,9 +15,7 @@ import type {
   PassioAccountListener,
   PassioTokenBudget,
   PassioCameraZoomLevel,
-  FoodDetectionConfig,
-  FoodDetectionEvent,
-  NutritionDetectionEvent,
+  BarcodeScanEvent,
 } from '../models'
 import type {
   Callback,
@@ -134,58 +132,29 @@ export const PassioSDK: PassioSDKInterface = {
     }
   },
 
-  startFoodDetection(
-    options: FoodDetectionConfig,
-    callback: (detection: FoodDetectionEvent) => void
-  ): Subscription {
-    const emitter =
-      Platform.OS === 'ios'
-        ? new NativeEventEmitter(PassioSDKBridge)
-        : new NativeEventEmitter()
-    const subscription = emitter.addListener('onFoodDetection', (event) => {
-      try {
-        callback(event as FoodDetectionEvent)
-      } catch (err) {
-        console.error('Error in Passio food detection callback: ', err)
-      }
-    })
-    const { detectBarcodes, detectPackagedFood, detectVisual } = options
-
-    PassioSDKBridge.startFoodDetection(
-      detectBarcodes,
-      detectPackagedFood,
-      detectVisual ?? true
-    )
-
-    return {
-      remove: () => {
-        PassioSDKBridge.stopFoodDetection()
-        subscription.remove()
-      },
-    }
-  },
-
-  startNutritionFactsDetection(
-    callback: (detection: NutritionDetectionEvent) => void
+  startBarcodeScanning(
+    callback: (detection: BarcodeScanEvent) => void
   ): Subscription {
     const emitter =
       Platform.OS === 'ios'
         ? new NativeEventEmitter(PassioSDKBridge)
         : new NativeEventEmitter()
     const subscription = emitter.addListener(
-      'NutritionFactsRecognitionListener',
+      'onBarcodeResultListener',
       (event) => {
         try {
-          callback(event as NutritionDetectionEvent)
+          callback(event as BarcodeScanEvent)
         } catch (err) {
-          console.error('Error in Passio nutrition detection callback: ', err)
+          console.error('Error in Passio food detection callback: ', err)
         }
       }
     )
-    PassioSDKBridge.startNutritionFactsDetection()
+
+    PassioSDKBridge.startBarcodeScanning()
+
     return {
       remove: () => {
-        PassioSDKBridge.stopNutritionFactsDetection()
+        PassioSDKBridge.stopBarcodeScanning()
         subscription.remove()
       },
     }
@@ -217,6 +186,10 @@ export const PassioSDK: PassioSDKInterface = {
     refCode: RefCode
   ): Promise<PassioFoodItem | null> {
     return PassioSDKBridge.fetchFoodItemForRefCode(refCode)
+  },
+
+  async fetchNutrientJSONForRefCode(refCode: RefCode): Promise<string | null> {
+    return PassioSDKBridge.fetchNutrientJSONForRefCode(refCode)
   },
 
   async fetchFoodItemForProductCode(

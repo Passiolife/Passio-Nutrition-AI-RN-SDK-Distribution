@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { NutritionFacts } from '@passiolife/nutritionai-react-native-sdk-v3'
 
 /**
  * Custom hook for handling quick food scanning using PassioSDK.
@@ -7,9 +6,7 @@ import type { NutritionFacts } from '@passiolife/nutritionai-react-native-sdk-v3
  */
 export const useQuickNutritionScan = () => {
   const [loading] = useState(true)
-  const [nutritionFacts, setNutritionFacts] = useState<
-    NutritionFacts | undefined
-  >(undefined)
+  const [nutritionFacts, setNutritionFacts] = useState(undefined)
 
   // useEffect(() => {
   //   // Function to handle food detection events

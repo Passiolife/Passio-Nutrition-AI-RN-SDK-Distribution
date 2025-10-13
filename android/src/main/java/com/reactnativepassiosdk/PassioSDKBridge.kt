@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import bridgeBarcodeCandidate
 import bridgeBitmap
 import bridgeFoodCandidates
 import bridgeInflammatoryEffectData
@@ -45,8 +46,7 @@ import putIfNotNull
 import toMapString
 
 class PassioSDKBridge(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), FoodRecognitionListener,
-  NutritionFactsRecognitionListener, PassioAccountListener {
+  ReactContextBaseJavaModule(reactContext), BarcodeScanningListener, PassioAccountListener {
 
   override fun getName() = "PassioSDKBridge"
 
@@ -146,39 +146,17 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun startFoodDetection(
-    detectBarcodes: Boolean,
-    detectPackagedFood: Boolean,
-    detectVisual: Boolean? = true,
-  ) {
+  fun startBarcodeScanning() {
     mainHandler.post {
-      val config = FoodDetectionConfiguration(
-        detectBarcodes = detectBarcodes,
-        detectVisual = detectVisual ?: true,
-        detectPackagedFood = detectPackagedFood
-      )
-      // The function will return false if the registration of the ```foodRecognitionListener``` failed.
-      PassioSDK.instance.startFoodDetection(this, config)
+      PassioSDK.instance.startBarcodeScanning(this)
     }
   }
 
   @ReactMethod
-  fun stopFoodDetection() {
-    // The function will return false if the unregistration of the current ```foodRecognitionListener``` failed.
-    PassioSDK.instance.stopFoodDetection()
+  fun stopBarcodeScanning() {
+    PassioSDK.instance.stopBarcodeScanning()
   }
 
-  @ReactMethod
-  fun startNutritionFactsDetection() {
-    mainHandler.post {
-      // PassioSDK.instance.startNutritionFactsDetection(this)
-    }
-  }
-
-  @ReactMethod
-  fun stopNutritionFactsDetection() {
-    // PassioSDK.instance.stopNutritionFactsDetection()
-  }
 
   @ReactMethod
   fun fetchFoodItemForPassioID(passioID: String, promise: Promise) {
@@ -643,6 +621,12 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     emitter.emit("onFoodDetection", args)
   }
 
+  private fun sendBarcodeDetectionEvent(args: ReadableMap) {
+    val emitter =
+      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+    emitter.emit("onBarcodeResultListener", args)
+  }
+
   private fun sendNutritionFactsRecognitionListener(args: ReadableMap) {
     val emitter =
       reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -683,6 +667,13 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun fetchNutrientJSONForRefCode(refCode: String, promise: Promise) {
+    PassioSDK.instance.fetchNutrientJSON(refCode = refCode) { nutrientJSON ->
+      promise.resolve(bridgePassioResultString(nutrientJSON))
+    }
+  }
+
+  @ReactMethod
   fun accountUsageUpdates() {
     PassioSDK.instance.setAccountListener(this)
   }
@@ -690,30 +681,6 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun enableFlashlight(enable: Boolean) {
     PassioSDK.instance.enableFlashlight(enable)
-  }
-
-  override fun onRecognitionResults(
-    candidates: FoodCandidates?,
-    image: Bitmap?,
-  ) {
-    val event = WritableNativeMap()
-    event.putMap("candidates", bridgeFoodCandidates(candidates))
-    if (image != null) {
-      event.putMap("image", bridgeBitmap(image))
-    }
-    sendDetectionEvent(event)
-  }
-
-  override fun onRecognitionResult(nutritionFacts: PassioNutritionFacts?, text: String) {
-    val event = WritableNativeMap()
-    if (nutritionFacts != null) {
-      event.putMap("nutritionFacts", bridgeNutritionFacts(nutritionFacts))
-    }
-    event.putIfNotNull("text", text)
-
-    if (nutritionFacts !== null || text.isNotEmpty()) {
-      sendNutritionFactsRecognitionListener(event)
-    }
   }
 
   override fun onTokenBudgetUpdate(tokenBudget: PassioTokenBudget) {
@@ -724,6 +691,17 @@ class PassioSDKBridge(reactContext: ReactApplicationContext) :
     event.putString("apiName", tokenBudget.apiName)
     event.putDouble("usedPercent", tokenBudget.usedPercent().toDouble())
     sendTokenBudgetUpdatedListener(event)
+  }
+
+  override fun onBarcodeResult(candidates: List<BarcodeCandidate>) {
+    val event = WritableNativeMap()
+    val barcodeCandidates = WritableNativeArray()
+    for (candidate in candidates!!) {
+      barcodeCandidates.pushMap(bridgeBarcodeCandidate(candidate))
+    }
+    event.putArray("barcodeCandidates", barcodeCandidates)
+    
+    sendBarcodeDetectionEvent(event)
   }
 }
 

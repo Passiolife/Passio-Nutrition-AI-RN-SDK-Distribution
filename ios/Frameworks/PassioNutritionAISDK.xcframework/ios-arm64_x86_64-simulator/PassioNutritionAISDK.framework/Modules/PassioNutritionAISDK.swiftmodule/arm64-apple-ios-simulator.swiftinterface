@@ -1,7 +1,7 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.10 clang-1600.0.30.1)
-// swift-module-flags: -target arm64-apple-ios13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name PassioNutritionAISDK
-// swift-module-flags-ignorable: -no-verify-emitted-module-interface
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-ios13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name PassioNutritionAISDK
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
 import AVFoundation
 import Accelerate
 import CommonCrypto
@@ -96,11 +96,11 @@ public enum CapturingDeviceType : Swift.CaseIterable {
   public static func defaultCapturing() -> PassioNutritionAISDK.CapturingDeviceType
   public static func getCapturingDeviceForPhotos(for position: AVFoundation.AVCaptureDevice.Position = .back, preset: AVFoundation.AVCaptureSession.Preset = .photo) -> PassioNutritionAISDK.CapturingDeviceType
   public static func == (a: PassioNutritionAISDK.CapturingDeviceType, b: PassioNutritionAISDK.CapturingDeviceType) -> Swift.Bool
-  public func hash(into hasher: inout Swift.Hasher)
   public typealias AllCases = [PassioNutritionAISDK.CapturingDeviceType]
   nonisolated public static var allCases: [PassioNutritionAISDK.CapturingDeviceType] {
     get
   }
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }
@@ -363,9 +363,8 @@ public class PassioMetadataService {
   @objc deinit
 }
 @_hasMissingDesignatedInitializers public class PassioNutritionAI {
-  #warning("1 If you're updating the ML model, update the version below. Otherwise, leave it as is.")
+  #warning("1. If you're updating the ML model, update the version below. Otherwise, leave it as is.")
   final public let filesVersion: Swift.Int
-  #warning("2 Update Core SDK version by pressing cntrl + commad + version below")
   public var version: Swift.String {
     get
   }
@@ -395,12 +394,8 @@ public class PassioMetadataService {
   }
   public func configure(passioConfiguration: PassioNutritionAISDK.PassioConfiguration, completion: @escaping (PassioNutritionAISDK.PassioStatus) -> Swift.Void)
   public func shutDownPassioSDK()
-  @available(*, deprecated, message: "Use `recognizeImageRemote` instead.")
-  public func startFoodDetection(detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), foodRecognitionDelegate: any PassioNutritionAISDK.FoodRecognitionDelegate, capturingDeviceType: PassioNutritionAISDK.CapturingDeviceType = .defaultCapturing(), completion: @escaping (Swift.Bool) -> Swift.Void)
-  @available(*, deprecated, message: "This method is deprecated and will be removed in a future release.")
-  public func startNutritionFactsDetection(nutritionfactsDelegate: (any PassioNutritionAISDK.NutritionFactsDelegate)?, capturingDeviceType: PassioNutritionAISDK.CapturingDeviceType = .defaultCapturing(), completion: @escaping (Swift.Bool) -> Swift.Void)
-  @available(*, deprecated, message: "Use `recognizeImageRemote` instead.")
-  public func stopFoodDetection()
+  public func startBarcodeScanning(recognitionDelegate: any PassioNutritionAISDK.BarcodeRecognitionDelegate, completion: @escaping (Swift.Bool) -> Swift.Void)
+  public func stopBarcodeScanning()
   public func detectBarcodesIn(image: UIKit.UIImage, completion: @escaping ([any PassioNutritionAISDK.BarcodeCandidate]) -> Swift.Void)
   public func listFoodEnabledForAmountEstimation() -> [PassioNutritionAISDK.PassioID]
   public func isWeightEstimateAvailableFor(passioID: PassioNutritionAISDK.PassioID) -> Swift.Bool
@@ -420,13 +415,14 @@ public class PassioMetadataService {
   public func cleanAllPersonalization()
   public func fetchFoodItemFor(passioID: PassioNutritionAISDK.PassioID, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
   public func fetchFoodItemFor(refCode: Swift.String, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
+  public func fetchNutrientJSON(refCode: Swift.String, completion: @escaping (Swift.String?) -> Swift.Void)
   public func searchForFood(byText: Swift.String, completion: @escaping (PassioNutritionAISDK.SearchResponse?) -> Swift.Void)
   public func searchForFoodSemantic(searchTerm: Swift.String, completion: @escaping (PassioNutritionAISDK.SearchResponse?) -> Swift.Void)
   public func fetchFoodItemFor(foodDataInfo: PassioNutritionAISDK.PassioFoodDataInfo, servingQuantity: Swift.Double? = nil, servingUnit: Swift.String? = nil, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
   public func fetchSuggestions(mealTime: PassioNutritionAISDK.PassioMealTime, completion: @escaping ([PassioNutritionAISDK.PassioFoodDataInfo]) -> Swift.Void)
   public func fetchMealPlans(completion: @escaping ([PassioNutritionAISDK.PassioMealPlan]) -> Swift.Void)
   public func fetchMealPlanForDay(mealPlanLabel: Swift.String, day: Swift.Int, completion: @escaping ([PassioNutritionAISDK.PassioMealPlanItem]) -> Swift.Void)
-  public func fetchFoodItemFor(productCode: Swift.String, completion: @escaping ((PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void))
+  public func fetchFoodItemFor(productCode: Swift.String, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
   public func fetchFoodItemLegacy(from passioID: PassioNutritionAISDK.PassioID, completion: @escaping (PassioNutritionAISDK.PassioFoodItem?) -> Swift.Void)
   public func lookupIconsFor(passioID: PassioNutritionAISDK.PassioID, size: PassioNutritionAISDK.IconSize = IconSize.px90, entityType: PassioNutritionAISDK.PassioIDEntityType = .item) -> (placeHolderIcon: UIKit.UIImage, icon: UIKit.UIImage?)
   public func fetchIconFor(passioID: PassioNutritionAISDK.PassioID, size: PassioNutritionAISDK.IconSize = IconSize.px90, completion: @escaping (UIKit.UIImage?) -> Swift.Void)
@@ -441,8 +437,6 @@ public class PassioMetadataService {
   public func recognizeImageRemoteWithGrouping(image: UIKit.UIImage, resolution: PassioNutritionAISDK.PassioImageResolution = .res_512, message: Swift.String? = nil, completion: @escaping (Swift.Result<PassioNutritionAISDK.PassioRecognitionResult, any Swift.Error>) -> Swift.Void)
   public func generateMealPlan(request: Swift.String, completion: @escaping (Swift.Result<PassioNutritionAISDK.PassioGeneratedMealPlan, any Swift.Error>) -> Swift.Void)
   public func generateMealPlanPreview(request: Swift.String, completion: @escaping (Swift.Result<PassioNutritionAISDK.PassioGeneratedMealPlan, any Swift.Error>) -> Swift.Void)
-  @available(*, deprecated, message: "This method is deprecated and will be removed in a future release.")
-  public func detectFoodWithText(image: UIKit.UIImage, detectionConfig: PassioNutritionAISDK.FoodDetectionConfiguration = FoodDetectionConfiguration(), completion: @escaping ((any PassioNutritionAISDK.FoodCandidatesWithText)?) -> Swift.Void)
   public func fetchHiddenIngredients(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
   public func fetchVisualAlternatives(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
   public func fetchPossibleIngredients(foodName: Swift.String, completion: @escaping PassioNutritionAISDK.NutritionAdvisorIngredientsResponse)
@@ -501,8 +495,8 @@ public struct PassioAlternative : Swift.Codable, Swift.Equatable, Swift.Hashable
   public var quantity: Swift.Double?
   public var unitName: Swift.String?
   public static func == (a: PassioNutritionAISDK.PassioAlternative, b: PassioNutritionAISDK.PassioAlternative) -> Swift.Bool
-  public func hash(into hasher: inout Swift.Hasher)
   public func encode(to encoder: any Swift.Encoder) throws
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }
@@ -849,8 +843,8 @@ public struct ResponseIngredient : Swift.Codable {
   }
   public func encode(to encoder: any Swift.Encoder) throws
 }
-public protocol FoodRecognitionDelegate : AnyObject {
-  func recognitionResults(candidates: (any PassioNutritionAISDK.FoodCandidates)?, image: UIKit.UIImage?)
+public protocol BarcodeRecognitionDelegate : AnyObject {
+  func recognitionResults(barcodeCandidates: [any PassioNutritionAISDK.BarcodeCandidate]?)
 }
 public protocol NutritionFactsDelegate : AnyObject {
   func recognitionResults(nutritionFacts: PassioNutritionAISDK.PassioNutritionFacts?, text: Swift.String?)
@@ -1003,8 +997,8 @@ public struct PassioServingSize : Swift.Codable, Swift.Equatable, Swift.Hashable
   public let unitName: Swift.String
   public init(quantity: Swift.Double, unitName: Swift.String)
   public static func == (a: PassioNutritionAISDK.PassioServingSize, b: PassioNutritionAISDK.PassioServingSize) -> Swift.Bool
-  public func hash(into hasher: inout Swift.Hasher)
   public func encode(to encoder: any Swift.Encoder) throws
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }
@@ -1109,7 +1103,8 @@ public struct PassioFoodDataInfo : Swift.Codable {
   public let isShortName: Swift.Bool
   public let refCode: Swift.String
   public let tags: [Swift.String]?
-  public init(foodName: Swift.String, brandName: Swift.String, iconID: PassioNutritionAISDK.PassioID, score: Swift.Double, scoredName: Swift.String, labelId: Swift.String, type: Swift.String, resultId: Swift.String, nutritionPreview: PassioNutritionAISDK.PassioSearchNutritionPreview?, isShortName: Swift.Bool, refCode: Swift.String, tags: [Swift.String]?)
+  public let concerns: [Swift.Int]?
+  public init(foodName: Swift.String, brandName: Swift.String, iconID: PassioNutritionAISDK.PassioID, score: Swift.Double, scoredName: Swift.String, labelId: Swift.String, type: Swift.String, resultId: Swift.String, nutritionPreview: PassioNutritionAISDK.PassioSearchNutritionPreview?, isShortName: Swift.Bool, refCode: Swift.String, tags: [Swift.String]?, concerns: [Swift.Int]?)
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
@@ -1158,8 +1153,8 @@ public struct PassioStatus : Swift.Codable {
 public enum PassioMode : Swift.Codable {
   case notReady, isBeingConfigured, isDownloadingModels, isReadyForDetection, failedToConfigure
   public static func == (a: PassioNutritionAISDK.PassioMode, b: PassioNutritionAISDK.PassioMode) -> Swift.Bool
-  public func hash(into hasher: inout Swift.Hasher)
   public func encode(to encoder: any Swift.Encoder) throws
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }

@@ -3,6 +3,7 @@ package com.reactnativepassiosdk.map
 import ai.passio.passiosdk.passiofood.PassioFoodDataInfo
 import ai.passio.passiosdk.passiofood.PassioSearchNutritionPreview
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableArray
 
 fun bridgePassioFoodDataInfoQuery(searchQuery: ReadableMap): PassioFoodDataInfo {
   val previewMap = searchQuery.getMap("nutritionPreview")
@@ -29,6 +30,13 @@ fun bridgePassioFoodDataInfoQuery(searchQuery: ReadableMap): PassioFoodDataInfo 
     }
   }
 
+  fun readableArrayToList(readableArray: ReadableArray?): List<Int>? {
+    if (readableArray == null) {
+      return null
+    }
+    return (0 until readableArray.size()).map { readableArray.getInt(it) }
+  }
+
   val query = PassioFoodDataInfo(
     foodName = searchQuery.getString("foodName") ?: "",
     brandName = searchQuery.getString("brandName") ?: "",
@@ -42,6 +50,7 @@ fun bridgePassioFoodDataInfoQuery(searchQuery: ReadableMap): PassioFoodDataInfo 
     isShortName = searchQuery.getBoolean("isShortName"),
     tags = tags,
     refCode = searchQuery.getString("refCode") ?: "",
+    concerns = readableArrayToList(searchQuery.getArray("concerns"))
   )
   return query
 }

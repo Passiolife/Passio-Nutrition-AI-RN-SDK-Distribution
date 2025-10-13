@@ -124,22 +124,17 @@ class PassioSDKBridge: RCTEventEmitter {
          }
      }
         
-    @objc(startFoodDetection:detectPackagedFood:detectVisual:)
-    func startFoodDetection(detectBarcodes: Bool, detectPackagedFood: Bool,detectVisual:Bool = true) {
+    @objc(startBarcodeScanning)
+    func startBarcodeScanning() {
         
-        let config = FoodDetectionConfiguration(
-            detectVisual: detectVisual,
-            detectBarcodes: detectBarcodes,
-            detectPackagedFood: detectPackagedFood
-        )
-        
+    
         if #available(iOS 13.0, *) {
             if debugMode {
                 
-                print("PassioSDK: Starting food detection...")
+                print("PassioSDK: Starting barcode detection...")
             }
             
-            sdk.startFoodDetection(detectionConfig: config, foodRecognitionDelegate: self) { [weak self] (isReady) in
+            sdk.startBarcodeScanning(recognitionDelegate: self) { [weak self] (isReady) in
                 
                 if self?.debugMode == true {
                     
@@ -152,51 +147,17 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
     
-    @objc(stopFoodDetection)
-    func stopFoodDetection() {
+    @objc(stopBarcodeScanning)
+    func stopBarcodeScanning() {
         
         if debugMode {
             
-            print("PassioSDK: Stopping food detection...")
+            print("PassioSDK: Stopping barcode detection...")
         }
         
-        sdk.stopFoodDetection()
+      sdk.stopBarcodeScanning()
     }
-    
-    @objc(startNutritionFactsDetection)
-    func startNutritionFactsDetection() {
-        
-       
-        if #available(iOS 13.0, *) {
-            if debugMode {
-                
-                print("PassioSDK: Starting nutrition detection...")
-            }
-            
-            sdk.startNutritionFactsDetection(nutritionfactsDelegate: self) { [weak self] (isReady) in
-                
-                
-                if self?.debugMode == true {
-                    
-                    print("PassioSDK: nutrition detection ready = \(isReady)")
-                }
-            }
-            
-        } else {
-            print("PassioSDK Error: nutrition detection only supported on iOS 13 and above")
-        }
-    }
-    
-    @objc(stopNutritionFactsDetection)
-    func stopNutritionFactsDetection() {
-        
-        if debugMode {
-            print("PassioSDK: Stopping nutrition detection...")
-        }
-        
-        sdk.stopFoodDetection()
-    }
-    
+
     
     @objc(fetchFoodItemForPassioID:withResolver:withRejecter:)
     func fetchFoodItemForPassioID(passioID: String,
@@ -246,6 +207,15 @@ class PassioSDKBridge: RCTEventEmitter {
         }
     }
  
+    @objc(fetchNutrientJSONForRefCode:withResolver:withRejecter:)
+    func fetchNutrientJSONForRefCode(refCode: String,
+                                     resolve: @escaping RCTPromiseResolveBlock,
+                                     reject: @escaping RCTPromiseRejectBlock) {
+        
+        sdk.fetchNutrientJSON(refCode: refCode) {attributes in
+            resolve(attributes)
+        }
+    }
     
     @objc(fetchFoodItemForProductCode:withResolver:withRejecter:)
     func fetchFoodItemForProductCode(code: String,
@@ -468,7 +438,7 @@ class PassioSDKBridge: RCTEventEmitter {
     
     override func supportedEvents() -> [String]! {
         
-        return [foodDetectionEventName,nutritionFactsRecognitionEventName,onPassioStatusChangedEventName, completedDownloadingFileEventName, downloadingErrorEventName,tokenBudgetUpdatedEVentName]
+        return [barcodeFoodDetectionName,onPassioStatusChangedEventName, completedDownloadingFileEventName, downloadingErrorEventName,tokenBudgetUpdatedEVentName]
     }
 
     
@@ -759,43 +729,21 @@ class PassioSDKBridge: RCTEventEmitter {
     }
 }
 
-private let foodDetectionEventName = "onFoodDetection"
-private let nutritionFactsRecognitionEventName = "NutritionFactsRecognitionListener"
+private let barcodeFoodDetectionName = "onBarcodeResultListener"
 
-extension PassioSDKBridge: FoodRecognitionDelegate {
+extension PassioSDKBridge:PassioNutritionAISDK.BarcodeRecognitionDelegate {
     
-    func recognitionResults(candidates: FoodCandidates?, image: UIImage?) {
+    func recognitionResults(barcodeCandidates: [any PassioNutritionAISDK.BarcodeCandidate]?) {
         
-        var body: [String: Any] = [:]
-        
-        if let candidates = candidates {
-            body["candidates"] = bridgeFoodCandidate(candidates)
-        }
-        
-        if let image = image {
-            body["image"] = bridgeUIImage(image)
-        }
-        
-        sendEvent(withName: foodDetectionEventName, body: body)
+      var body: [String: Any] = [:]
+      
+      if let barcodeCandidates = barcodeCandidates, barcodeCandidates.count > 0 {
+        body["barcodeCandidates"] = barcodeCandidates.map(bridgeBarcodeCandidate)
+      }
+        sendEvent(withName: barcodeFoodDetectionName, body: body)
     }
 }
-extension PassioSDKBridge: NutritionFactsDelegate {
-    
-    func recognitionResults(nutritionFacts: PassioNutritionFacts?, text: String?) {
-       
-        var body: [String: Any] = [:]
-        
-        if let nutritionFact = nutritionFacts {
-            body["nutritionFacts"] = bridgeNutritionFacts(nutritionFact)
-        }
-        
-        if let textResult = text {
-            body["text"] = textResult
-        }
-        
-        sendEvent(withName: nutritionFactsRecognitionEventName, body: body)
-    }
-}
+
 extension PassioSDKBridge: PassioAccountDelegate {
 
     func tokenBudgetUpdated(tokenBudget: PassioNutritionAISDK.PassioTokenBudget) {
@@ -1640,7 +1588,7 @@ private func preparePassioFoodDataInfo(_ json: String) -> PassioFoodDataInfo? {
                 // Get the tags array or an empty array if it's nil
                let tags = jsonData["tags"] as? [String] ?? []
                 
-                return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["isShortName"] as? Bool) ?? true,refCode: jsonData["refCode"] as! String,tags:tags)
+              return PassioFoodDataInfo(foodName: jsonData["foodName"] as! String, brandName: jsonData["brandName"] as! String, iconID: jsonData["iconID"] as! String, score: jsonData["score"] as! Double, scoredName: jsonData["scoredName"] as! String, labelId: jsonData["labelId"] as! String, type: jsonData["type"] as! String, resultId: jsonData["resultId"] as! String, nutritionPreview: nil, isShortName:(jsonData["isShortName"] as? Bool) ?? true,refCode: jsonData["refCode"] as! String,tags:tags, concerns: (jsonData["concerns"] as? [Int]?) ?? [])
                 
             }else{
                 return nil

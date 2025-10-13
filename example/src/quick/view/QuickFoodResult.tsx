@@ -5,23 +5,17 @@ import {
   IconSize,
   PassioIconView,
   type PassioFoodItem,
-  DetectedCandidate,
   PassioSDK,
 } from '@passiolife/nutritionai-react-native-sdk-v3'
-import { AlternativeFood } from '../../../src/views/AlternativeFood'
 
 export interface QuickFoodResultProps {
   attribute: PassioFoodItem
-  alternativeAttributes?: DetectedCandidate[]
-  onAlternativeFoodItemChange?: (item: DetectedCandidate) => void
   onClearResultPress?: () => void
   onItemClick?: (passioFoodItem: PassioFoodItem) => void
 }
 
 export const QuickFoodResult = ({
   attribute,
-  alternativeAttributes,
-  onAlternativeFoodItemChange,
   onClearResultPress,
   onItemClick,
 }: QuickFoodResultProps) => {
@@ -61,12 +55,7 @@ export const QuickFoodResult = ({
           </Text>
         </View>
       </View>
-      {alternativeAttributes && (
-        <AlternativeFood
-          detectedCandidates={alternativeAttributes}
-          onAlternativeFoodItemChange={onAlternativeFoodItemChange}
-        />
-      )}
+
       <Pressable style={styles.clearResult} onPress={onClearResultPress}>
         <Image
           source={require('../../assets/close.png')}

@@ -5,6 +5,7 @@
  */
 export interface FoodDetectionConfig {
   /**
+   * @deprecated This is no longer supported.
    * Detect packaged food labels using OCR. Results will be returned
    * as OCRCandidates in the `FoodCandidates` property of `FoodDetectionEvent`
    * By default, this is set to false.

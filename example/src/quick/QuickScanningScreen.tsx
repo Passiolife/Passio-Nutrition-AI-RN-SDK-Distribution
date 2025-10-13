@@ -21,13 +21,7 @@ interface Props {
 }
 
 export const QuickScanningScreen = ({ onClose, onFoodDetail }: Props) => {
-  const {
-    loading,
-    passioFoodItem,
-    onClearResultPress,
-    alternative,
-    onAlternativeFoodItemChange,
-  } = useQuickScan()
+  const { loading, passioFoodItem, onClearResultPress } = useQuickScan()
   const styles = quickScanStyle()
 
   return (
@@ -42,9 +36,7 @@ export const QuickScanningScreen = ({ onClose, onFoodDetail }: Props) => {
       {passioFoodItem !== null ? (
         <QuickFoodResult
           attribute={passioFoodItem}
-          onAlternativeFoodItemChange={onAlternativeFoodItemChange}
           onClearResultPress={onClearResultPress}
-          alternativeAttributes={alternative ?? []}
           onItemClick={onFoodDetail}
         />
       ) : null}

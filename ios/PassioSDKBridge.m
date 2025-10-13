@@ -19,16 +19,10 @@ RCT_EXTERN_METHOD(accountUsageUpdates)
 RCT_EXTERN_METHOD(requestCameraAuthorization:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(startFoodDetection:(BOOL)detectBarcodes
-                  detectPackagedFood:(BOOL)detectPackagedFood
-                  detectVisual:(BOOL)detectVisual)
+RCT_EXTERN_METHOD(startBarcodeScanning)
+RCT_EXTERN_METHOD(stopBarcodeScanning)
 
 
-RCT_EXTERN_METHOD(stopFoodDetection)
-
-RCT_EXTERN_METHOD(stopNutritionFactsDetection)
-
-RCT_EXTERN_METHOD(startNutritionFactsDetection)
 
 RCT_EXTERN_METHOD(fetchFoodItemForPassioID:(NSString *)passioID
                   withResolver:(RCTPromiseResolveBlock)resolve
@@ -39,6 +33,10 @@ RCT_EXTERN_METHOD(fetchFoodItemLegacy:(NSString *)passioID
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(fetchFoodItemForRefCode:(NSString *)refCode
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(fetchNutrientJSONForRefCode:(NSString *)refCode
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 

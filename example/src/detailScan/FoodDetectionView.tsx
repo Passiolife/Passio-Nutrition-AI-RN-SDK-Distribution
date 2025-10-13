@@ -1,10 +1,7 @@
 import {
   BarcodeCandidate,
-  DetectedCandidate,
+  BarcodeScanEvent,
   DetectionCameraView,
-  FoodDetectionConfig,
-  FoodDetectionEvent,
-  PackagedFoodCode,
   PassioFoodItem,
   PassioSDK,
 } from '@passiolife/nutritionai-react-native-sdk-v3'
@@ -28,31 +25,14 @@ export const FoodDetectionView = (props: Props) => {
   const [state, setState] = useState<State>({ candidates: [] })
 
   useEffect(() => {
-    const config: FoodDetectionConfig = {
-      detectBarcodes: true,
-      detectPackagedFood: true,
-    }
-    const subscription = PassioSDK.startFoodDetection(
-      config,
-      async (detection: FoodDetectionEvent) => {
-        const { candidates } = detection
-        if (candidates && candidates?.barcodeCandidates?.length) {
+    const subscription = PassioSDK.startBarcodeScanning(
+      async (detection: BarcodeScanEvent) => {
+        const barcodeCandidates = detection.barcodeCandidates
+        if (barcodeCandidates?.length) {
           const attributes = await getAttributesForBarcodeCandidates(
-            candidates.barcodeCandidates
+            barcodeCandidates
           )
           setState({ candidates: attributes })
-        } else if (candidates && candidates?.packagedFoodCode?.length) {
-          const attributes = await getAttributesForPackagedFoodCandidates(
-            candidates.packagedFoodCode
-          )
-          setState({ candidates: attributes })
-        } else if (candidates?.detectedCandidates?.length) {
-          const attributes = await getAttributesFromVisualCandidates(
-            candidates.detectedCandidates
-          )
-          setState({
-            candidates: attributes,
-          })
         } else {
           setState({ candidates: [] })
         }
@@ -107,25 +87,6 @@ const styles = StyleSheet.create({
   },
 })
 
-async function getAttributesFromVisualCandidates(
-  candidates: DetectedCandidate[]
-): Promise<PassioFoodItem[]> {
-  const getAttributes = candidates.map(({ passioID }) => {
-    return PassioSDK.fetchFoodItemForPassioID(passioID).then(
-      (attr: PassioFoodItem | null) => {
-        attributeLogging &&
-          console.log(
-            'Got visual candidate attributes ',
-            JSON.stringify(attr, null, 2)
-          )
-        return attr
-      }
-    )
-  })
-  const attrs = await Promise.all(getAttributes)
-  return attrs.filter(notEmpty)
-}
-
 async function getAttributesForBarcodeCandidates(
   candidates: BarcodeCandidate[]
 ): Promise<PassioFoodItem[]> {
@@ -134,22 +95,6 @@ async function getAttributesForBarcodeCandidates(
       (attr: PassioFoodItem | null) => {
         attributeLogging &&
           console.log('Got barcode attributes ', JSON.stringify(attr, null, 2))
-        return attr
-      }
-    )
-  })
-  const attrs = await Promise.all(getAttributes)
-  return attrs.filter(notEmpty)
-}
-
-async function getAttributesForPackagedFoodCandidates(
-  candidates: PackagedFoodCode[]
-): Promise<PassioFoodItem[]> {
-  const getAttributes = candidates.map((packagedFoodCode) => {
-    return PassioSDK.fetchFoodItemForProductCode(packagedFoodCode).then(
-      (attr: PassioFoodItem | null) => {
-        attributeLogging &&
-          console.log('Got OCR attributes ', JSON.stringify(attr, null, 2))
         return attr
       }
     )

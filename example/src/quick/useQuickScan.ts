@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   PassioSDK,
-  type FoodDetectionConfig,
-  type FoodDetectionEvent,
   PassioFoodItem,
-  DetectedCandidate,
+  BarcodeScanEvent,
 } from '@passiolife/nutritionai-react-native-sdk-v3'
 
 /**
@@ -17,7 +15,7 @@ export const useQuickScan = () => {
     null
   )
   const [alternative, setAlternativePassioIDAttributes] = useState<
-    DetectedCandidate[] | null | undefined
+    [] | null | undefined
   >(null)
   const [loading, setLoading] = useState(true)
   const passioFoodItemRef = useRef<PassioFoodItem | null>(null)
@@ -32,28 +30,20 @@ export const useQuickScan = () => {
 
   useEffect(() => {
     // Function to handle food detection events
-    const handleFoodDetection = async (detection: FoodDetectionEvent) => {
-      const { candidates } = detection
+    const handleFoodDetection = async (detection: BarcodeScanEvent) => {
+      const barcodeCandidates = detection.barcodeCandidates
 
       // If no candidates available, return
-      if (!candidates) {
+      if (!barcodeCandidates) {
         return
       }
 
       let attributes: PassioFoodItem | null = null
 
       // Determine the type of food detection and fetch attributes accordingly
-      if (candidates && candidates.barcodeCandidates?.[0]) {
-        const barcode = candidates.barcodeCandidates[0].barcode
+      if (barcodeCandidates?.[0]) {
+        const barcode = barcodeCandidates[0].barcode
         attributes = await PassioSDK.fetchFoodItemForProductCode(barcode)
-      } else if (candidates && candidates.packagedFoodCode?.[0]) {
-        const packagedFoodCode = candidates.packagedFoodCode?.[0]
-        attributes = await PassioSDK.fetchFoodItemForProductCode(
-          packagedFoodCode
-        )
-      } else if (candidates && candidates.detectedCandidates?.[0]) {
-        const passioID = candidates.detectedCandidates[0].passioID
-        attributes = await PassioSDK.fetchFoodItemForPassioID(passioID)
       }
 
       // If attributes are null, return
@@ -70,9 +60,6 @@ export const useQuickScan = () => {
           if (attributes?.id === prev?.id) {
             return prev
           } else {
-            setAlternativePassioIDAttributes(
-              candidates.detectedCandidates?.[0]?.alternatives
-            )
             return attributes
           }
         })
@@ -81,37 +68,16 @@ export const useQuickScan = () => {
       }
     }
 
-    // Configuration for food detection
-    const config: FoodDetectionConfig = {
-      detectBarcodes: true,
-      detectPackagedFood: false,
-      detectVisual: false,
-    }
-
     // Start food detection and subscribe to events
     console.log('Starting food detection')
-    const subscription = PassioSDK.startFoodDetection(
-      config,
-      handleFoodDetection
-    )
+    const subscription = PassioSDK.startBarcodeScanning(handleFoodDetection)
 
     // Cleanup function to unsubscribe when the component unmounts
     return () => subscription.remove()
   }, []) // Empty dependency array to run the effect only once during component mount
 
   // Function to handle changes in alternative food items
-  const onAlternativeFoodItemChange = useCallback(
-    async (attribute: DetectedCandidate) => {
-      const alternatePassioFoodItem = await PassioSDK.fetchFoodItemForPassioID(
-        attribute.passioID
-      )
-      if (alternatePassioFoodItem) {
-        passioFoodItemRef.current = alternatePassioFoodItem
-        setPassioFoodItem(alternatePassioFoodItem)
-      }
-    },
-    []
-  )
+  const onAlternativeFoodItemChange = useCallback(async () => {}, [])
 
   // Return the hook's public API
   return {

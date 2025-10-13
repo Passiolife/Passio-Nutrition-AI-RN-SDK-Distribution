@@ -70,3 +70,5 @@ example/android/.project
 example/android/.settings/org.eclipse.buildship.core.prefs
 example/key.ts
 example/key/index.ts
+example/.env
+example/.env.example

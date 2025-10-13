@@ -215,7 +215,7 @@ dependencies {
     implementation project(':reactnativepassiosdk')
 
     //SDK
-    implementation 'ai.passio.passiosdk:nutrition-ai:3.2.6-1'
+    implementation 'ai.passio.passiosdk:nutrition-ai:3.2.10-preview1'
 
 }
 

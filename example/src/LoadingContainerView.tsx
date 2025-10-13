@@ -13,7 +13,6 @@ import {
 import { FoodDetectionView } from './detailScan/FoodDetectionView'
 import { SDKStatus, useCameraAuthorization, usePassioSDK } from './App.hooks'
 import { FoodSearchView } from './search'
-import { MultiScanView } from './multiScan/MultiScanView'
 import { PASSIO_KEY } from './key'
 import { QuickScanningScreen } from './quick/QuickScanningScreen'
 import {
@@ -174,14 +173,6 @@ export const LoadingContainerView = () => {
           case 'Suggestion':
             return (
               <FoodSuggestion
-                onClose={onBackToHome}
-                onFoodDetail={setPassioFoodItem}
-              />
-            )
-
-          case 'MultiScan':
-            return (
-              <MultiScanView
                 onClose={onBackToHome}
                 onFoodDetail={setPassioFoodItem}
               />
@@ -387,10 +378,7 @@ const LoadingView = (props: {
                     title="Recognize Nutrition Facts Remote"
                     onClick={props.onRecognizeNutritionFactsRemote}
                   />
-                  {/* <FeatureButton
-                    title="Multi Scan (Only visual food)"
-                    onClick={props.onMultiScanning}
-                  /> */}
+
                   <FeatureButton
                     title="LegacyAPI"
                     onClick={props.onLegacyAPI}

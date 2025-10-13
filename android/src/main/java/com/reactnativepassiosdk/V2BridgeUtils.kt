@@ -84,6 +84,14 @@ fun bridgePassioResultBoolean(result: PassioResult<Boolean>): ReadableMap {
   }
   return map
 }
+
+fun bridgePassioResultString(result: PassioResult<String>): String {
+    return when (result) {
+        is PassioResult.Success -> result.value ?: ""
+        is PassioResult.Error -> result.message ?: "Unknown error"
+    }
+}
+
 fun bridgePassioFoodMetadata(passioFoodMetadata: PassioFoodMetadata): ReadableMap {
   val map = WritableNativeMap()
   map.putIfNotNull("barcode", passioFoodMetadata.barcode)
